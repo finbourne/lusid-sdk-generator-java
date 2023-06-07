@@ -1,0 +1,78 @@
+{
+    "artifactVersion": "${PACKAGE_VERSION}",
+    "artifactId": "${PACKAGE_NAME}",
+    "artifactDescription": "${PROJECT_NAME}",
+    "artifactUrl": "https://github.com/finbourne/${PROJECT_NAME}-sdk-java",
+    "modelPackage": "com.finbourne.${PROJECT_NAME}.model",
+    "apiPackage": "com.finbourne.${PROJECT_NAME}.api",
+    "invokerPackage": "com.finbourne.${PROJECT_NAME}",
+    "licenseUrl": "https://github.com/finbourne/${PROJECT_NAME}-sdk-java/blob/master/LICENSE.md",
+    "metaRequestIdHeader": "lusid-meta-requestid",
+    "developerName": "FINBOURNE Technology Limited",
+    "developerEmail": "engineering@finbourne.com",
+    "developerOrganization": "FINBOURNE Technology Limited",
+    "developerOrganizationUrl": "https://www.finbourne.com",
+    "disallowAdditionalPropertiesIfNotPresent": "true",
+    "sourceFolder": "src/main/java",
+    "groupId": "com.finbourne",
+    "scmConnection": "",
+    "scmDeveloperConnection": "scm:git:git@github.com:finbourne/${PROJECT_NAME}-sdk-java.git",
+    "scmUrl": "https://github.com/finbourne/${PROJECT_NAME}-sdk-java",
+    "dateLibrary": "java8",
+    "licenseName": "MIT",
+    "hideGenerationTimestamp": true,
+    "files": {
+        "other/ApiClientBuilder.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "ApiClientBuilder.java"
+        },
+        "other/ApiConfiguration.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "ApiConfiguration.java"
+        },
+        "other/ApiConfigurationBuilder.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "ApiConfigurationBuilder.java"
+        },
+        "other/ApiConfigurationException.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "ApiConfigurationException.java"
+        },
+        "other/ApiFactory.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "ApiFactory.java"
+        },
+        "other/ApiFactoryBuilder.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "ApiFactoryBuilder.java"
+        },
+        "other/FileConfigurationLoader.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "FileConfigurationLoader.java"
+        },
+        "other/HttpClientFactory.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "HttpClientFactory.java"
+        },
+        "other/RefreshingTokenApiClient.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "RefreshingTokenApiClient.java"
+        },
+        "other/auth/FinbourneToken.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions/auth",
+            "destinationFilename": "FinbourneToken.java"
+        },
+        "other/auth/FinbourneTokenException.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions/auth",
+            "destinationFilename": "FinbourneTokenException.java"
+        },
+        "other/auth/HttpFinbourneTokenProvider.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions/auth",
+            "destinationFilename": "HttpFinbourneTokenProvider.java"
+        },
+        "other/auth/RefreshingTokenProvider.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions/auth",
+            "destinationFilename": "RefreshingTokenProvider.java"
+        }
+    }
+}

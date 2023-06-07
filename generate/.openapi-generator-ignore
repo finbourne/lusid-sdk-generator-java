@@ -1,0 +1,22 @@
+# Swagger Codegen Ignore
+
+# Use this file to prevent files from being overwritten by the generator.
+# The patterns follow closely to .gitignore or .dockerignore.
+
+**/test/integration/**
+**/test/resources/**
+# **/pom.xml
+# **/pom.xml.versionsBackup
+
+.github/
+gradle/
+.travis.yml
+build.gradle
+build.sbt
+git_push.sh
+gradle.properties
+gradlew
+gradlew.bat
+settings.gradle
+src/main/AndroidManifest.xml
+src/test/java/com/**
