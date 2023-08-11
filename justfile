@@ -15,7 +15,6 @@ get-swagger:
 
 build-docker-images: 
     docker build -t lusid-sdk-gen-java:latest --ssh default=$SSH_AUTH_SOCK -f Dockerfile generate
-    docker build -t lusid-sdk-pub-java:latest -f publish/Dockerfile publish
 
 generate-local:
     mkdir -p /tmp/${PROJECT_NAME}_${PACKAGE_VERSION}
@@ -54,14 +53,14 @@ publish-only-local:
         -v $(pwd)/generate/.output:/usr/src \
         -v $(pwd)/publish/publish-local.sh:/usr/src/publish.sh \
         -v ${JAVA_PACKAGE_LOCATION}:/tmp/local-maven-repo \
-        lusid-sdk-pub-java:latest -- "/usr/src/publish.sh"
+        lusid-sdk-gen-java:latest -- "/usr/src/publish.sh"
 
 publish-only:
     docker run \
         -e PACKAGE_VERSION=${PACKAGE_VERSION} \
         -v $(pwd)/generate/.output:/usr/src \
         -v $(pwd)/publish/publish.sh:/usr/src/publish.sh \
-        lusid-sdk-pub-java:latest -- "/usr/src/publish.sh"
+        lusid-sdk-gen-java:latest -- "/usr/src/publish.sh"
 
 generate-and-publish TARGET_DIR:
     @just generate {{TARGET_DIR}}
