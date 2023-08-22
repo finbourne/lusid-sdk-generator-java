@@ -168,8 +168,14 @@ public class ApiException extends{{#useRuntimeException}} RuntimeException {{/us
      * @return The exception message
      */
     public String getMessage() {
-        return String.format("Message: %s%nHTTP response code: %s%nHTTP response body: %s%nHTTP response headers: %s",
-                super.getMessage(), this.getCode(), this.getResponseBody(), this.getResponseHeaders());
+        if (responseHeaders == null) {
+            return String.format("Message: %s%nHTTP response code: %s%nHTTP response body: %s%nHTTP response headers: %s",
+                super.getMessage(), this.getCode(), this.getResponseBody(), this.getResponseHeaders());        
+        }
+        List<String> ids = responseHeaders.get("lusid-meta-requestid");
+        String requestId = ids == null ? "" : ids.stream().findFirst().get();
+        return String.format("LUSID requestId = %s\nMessage: %s%nHTTP response code: %s%nHTTP response body: %s%nHTTP response headers: %s",
+                requestId, super.getMessage(), this.getCode(), this.getResponseBody(), this.getResponseHeaders());
     }
     {{#errorObjectType}}
 

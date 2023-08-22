@@ -1,11 +1,16 @@
 package {{invokerPackage}}.extensions;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.util.concurrent.TimeUnit;
+import okhttp3.OkHttpClient.Builder;
+import okhttp3.Credentials;
+
 import {{invokerPackage}}.ApiClient;
 import {{invokerPackage}}.extensions.auth.HttpFinbourneTokenProvider;
 import {{invokerPackage}}.extensions.auth.RefreshingTokenProvider;
 import {{invokerPackage}}.extensions.auth.FinbourneToken;
 import {{invokerPackage}}.extensions.auth.FinbourneTokenException;
-import okhttp3.OkHttpClient;
 
 /**
 * Utility class to build an ApiClient from a set of configuration
@@ -28,30 +33,35 @@ public class ApiClientBuilder {
     */
     public ApiClient build(ApiConfiguration apiConfiguration) throws FinbourneTokenException {
 
-        return this.build(apiConfiguration, DEFAULT_TIMEOUT_SECONDS, DEFAULT_TIMEOUT_SECONDS, DEFAULT_TIMEOUT_SECONDS);
+        return this.build(apiConfiguration, 10, 10);
     }
 
     /**
-     * Builds an ApiClient implementation configured against a secrets file. Typically used
-     * for communicating with LUSID via the APIs
+     * Builds an ApiClient implementation configured against a secrets file.
+     * Typically used
+     * for communicating with {{#lambda.camelcase}}{{application}}{{/lambda.camelcase}} via the APIs
      *
-     * ApiClient implementation enables use of REFRESH tokens (see https://support.finbourne.com/using-a-refresh-token)
+     * ApiClient implementation enables use of REFRESH tokens (see
+     * https://support.finbourne.com/using-a-refresh-token)
      * and automatically handles token refreshing on expiry.
      *
-     * @param apiConfiguration configuration to connect to {{#lambda.lowercase}}{{application}}{{/lambda.lowercase}} API
-     * @param readTimeout read timeout in seconds
-     * @param writeTimeout write timeout in seconds
+     * @param apiConfiguration configuration to connect to lusid API
+     * @param readTimeout      read timeout in seconds
+     * @param writeTimeout     write timeout in seconds
+     * @param connectTimeout   connection timeout in seconds
      * @return
      *
-     * @throws FinbourneTokenException on failing to authenticate and retrieve an initial {@link FinbourneTokenException}
+     * @throws FinbourneTokenException on failing to authenticate and retrieve an
+     *                                 initial {@link FinbourneToken}
      */
-    public ApiClient build(ApiConfiguration apiConfiguration, int readTimeout, int writeTimeout) throws FinbourneTokenException {
-        return this.build(apiConfiguration, readTimeout, writeTimeout, DEFAULT_TIMEOUT_SECONDS);
+    public ApiClient build(ApiConfiguration apiConfiguration, int readTimeout, int writeTimeout, int connectTimeout,
+            int retryMaxAttempts) throws FinbourneTokenException {
+        return this.build(apiConfiguration, readTimeout, writeTimeout, connectTimeout, retryMaxAttempts, new Builder());
     }
 
     /**
      * Builds an ApiClient implementation configured against a secrets file. Typically used
-     * for communicating with luminesce via the APIs
+     * for communicating with {{#lambda.camelcase}}{{application}}{{/lambda.camelcase}} via the APIs
      *
      * ApiClient implementation enables use of REFRESH tokens (see https://support.finbourne.com/using-a-refresh-token)
      * and automatically handles token refreshing on expiry.
@@ -60,58 +70,80 @@ public class ApiClientBuilder {
      * @param readTimeout read timeout in seconds
      * @param writeTimeout write timeout in seconds
      * @param connectTimeout connection timeout in seconds
+     * @param httpClientBuilder {@link Builder} with some configuration already
+     *                          set
      * @return
      *
      * @throws FinbourneTokenException on failing to authenticate and retrieve an initial {@link FinbourneToken}
      */
-    public ApiClient build(ApiConfiguration apiConfiguration, int readTimeout, int writeTimeout, int connectTimeout) throws FinbourneTokenException {
+     public ApiClient build(ApiConfiguration apiConfiguration, int readTimeout, int writeTimeout, int connectTimeout,
+            int retryMaxAttempts, Builder httpClientBuilder) throws FinbourneTokenException {
         // http client to use for api and auth calls
-        OkHttpClient httpClient = createHttpClient(apiConfiguration, readTimeout, writeTimeout, connectTimeout);
+        httpClientBuilder = httpClientBuilder.readTimeout(readTimeout, TimeUnit.SECONDS)
+                .writeTimeout(writeTimeout, TimeUnit.SECONDS)
+                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+                .addInterceptor(new RateLimitRetryInterceptor(retryMaxAttempts));
 
+        // use a proxy if given
+        if (apiConfiguration.getProxyAddress() != null) {
+            InetSocketAddress proxy = new InetSocketAddress(apiConfiguration.getProxyAddress(),
+                    apiConfiguration.getProxyPort());
+
+            httpClientBuilder = httpClientBuilder.proxy(new Proxy(Proxy.Type.HTTP, proxy))
+                    .proxyAuthenticator((route, response) -> {
+                        String credential = Credentials.basic(apiConfiguration.getProxyUsername(),
+                                apiConfiguration.getProxyPassword());
+                        return response.request().newBuilder()
+                                .header("Proxy-Authorization", credential)
+                                .build();
+                    });
+        }
+        ApiClient defaultApiClient;
+        FinbourneToken finbourneToken;
         if (apiConfiguration.getPersonalAccessToken() != null && apiConfiguration.getApiUrl() != null) {
-            //  use Personal Access Token
-            FinbourneToken token = new FinbourneToken(apiConfiguration.getPersonalAccessToken(), null, null);
-            ApiClient defaultApiClient = createDefaultApiClient(apiConfiguration, httpClient, token);
+            // use Personal Access Token
+            finbourneToken = new FinbourneToken(apiConfiguration.getPersonalAccessToken(), null, null);
 
-            return defaultApiClient;
-        }
-        else {
-            // token provider to keep client authenticated with automated token refreshing
-            RefreshingTokenProvider refreshingTokenProvider = new RefreshingTokenProvider(new HttpFinbourneTokenProvider(apiConfiguration, httpClient));
-            FinbourneToken finbourneToken = refreshingTokenProvider.get();
-
-            // setup api client that managed submissions with latest token
-            ApiClient defaultApiClient = createDefaultApiClient(apiConfiguration, httpClient, finbourneToken);
-            return new RefreshingTokenApiClient(defaultApiClient, refreshingTokenProvider);
-        }
-    }
-
-    ApiClient createDefaultApiClient(ApiConfiguration apiConfiguration, OkHttpClient httpClient, FinbourneToken finbourneToken) throws FinbourneTokenException {
-        ApiClient apiClient = createApiClient();
-
-        apiClient.setHttpClient(httpClient);
-
-        if (finbourneToken.getAccessToken() == null) {
-            throw new FinbourneTokenException("Cannot construct an API client with a null authorisation header. Ensure " +
-                    "finbourne token generated is valid");
+            defaultApiClient = new ApiClient(httpClientBuilder.build());
+            defaultApiClient.setAccessToken(finbourneToken.getAccessToken());
         } else {
-            apiClient.addDefaultHeader("Authorization", "Bearer " + finbourneToken.getAccessToken());
+            // token provider to keep client authenticated with automated token refreshing
+            RefreshingTokenProvider refreshingTokenProvider = new RefreshingTokenProvider(
+                    new HttpFinbourneTokenProvider(apiConfiguration, httpClientBuilder.build()));
+            finbourneToken = refreshingTokenProvider.get();
+            // setup api client that managed submissions with the latest token
+
+            httpClientBuilder = httpClientBuilder
+                    .addInterceptor(new AuthenticationInterceptor(refreshingTokenProvider));
+
+            defaultApiClient = new ApiClient(httpClientBuilder.build());
+
         }
-
-        if (apiConfiguration.getApplicationName() != null) {
-            apiClient.addDefaultHeader("X-LUSID-Application", apiConfiguration.getApplicationName());
+        if (finbourneToken.getAccessToken() == null) {
+            throw new FinbourneTokenException(
+                    "Cannot construct an API client with a null authorisation header. Ensure " +
+                            "finbourne token generated is valid");
         }
-        apiClient.setBasePath(apiConfiguration.getApiUrl());
-
-        return  apiClient;
+        defaultApiClient.setBasePath(apiConfiguration.getApiUrl());
+        return defaultApiClient;
     }
 
-    private OkHttpClient createHttpClient(ApiConfiguration apiConfiguration, int readTimeout, int writeTimeout, int connectTimeout){
-        return new HttpClientFactory().build(apiConfiguration, readTimeout, writeTimeout, connectTimeout);
+    /**
+     * Builds an ApiClient implementation configured against a secrets file. Typically used
+     * for communicating with {{#lambda.camelcase}}{{application}}{{/lambda.camelcase}} via the APIs
+     *
+     * ApiClient implementation enables use of REFRESH tokens (see https://support.finbourne.com/using-a-refresh-token)
+     * and automatically handles token refreshing on expiry.
+     *
+     * @param apiConfiguration configuration to connect to {{#lambda.camelcase}}{{application}}{{/lambda.camelcase}} API
+     * @param readTimeout read timeout in seconds
+     * @param writeTimeout write timeout in seconds
+     * @return
+     *
+     * @throws FinbourneTokenException on failing to authenticate and retrieve an initial {@link FinbourneToken}
+     */
+    public ApiClient build(ApiConfiguration apiConfiguration, int readTimeout, int writeTimeout) throws FinbourneTokenException {
+        return this.build(apiConfiguration, readTimeout, writeTimeout, DEFAULT_TIMEOUT_SECONDS, 3);
     }
 
-    // allows us to mock out api client for testing purposes
-    ApiClient createApiClient(){
-        return new ApiClient();
-    }
 }
