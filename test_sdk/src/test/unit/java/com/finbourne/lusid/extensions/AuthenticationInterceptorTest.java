@@ -8,6 +8,7 @@ import com.finbourne.lusid.Pair;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
@@ -27,12 +28,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.instanceOf;
-
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class AuthenticationInterceptorTest {
         // mock dependencies
-        private ApiClient defaultApiClient;
         private RefreshingTokenProvider tokenProvider;
 
         // mock tokens
@@ -40,24 +40,11 @@ public class AuthenticationInterceptorTest {
         private FinbourneToken anotherFinbourneToken = new FinbourneToken("access_02", "refresh_01",
                         LocalDateTime.now());
 
-        // call params
-        private String path = "/get_portfolios";
-        private String method = "GET";
-        private List<Pair> queryParams = new ArrayList<>();
-        private List<Pair> collectionQueryParams = new ArrayList<>();
-        private Object body = new Object();
-        private Map<String, String> headerParams = new HashMap<>();
-        private Map<String, String> cookieParams = new HashMap<>();
-        private Map<String, Object> formParams = new HashMap<>();
-        private String[] authNames = new String[] {};
-        private ApiCallback apiCallback = mock(ApiCallback.class);
-
         @Rule
         public ExpectedException thrown = ExpectedException.none();
 
         @Before
         public void setUp() throws FinbourneTokenException {
-                defaultApiClient = mock(ApiClient.class);
                 tokenProvider = mock(RefreshingTokenProvider.class);
 
                 doReturn(FinbourneToken).when(tokenProvider).get();
@@ -67,6 +54,7 @@ public class AuthenticationInterceptorTest {
         @Test
         public void intercept_ShouldUpdateAuthHeader() throws ApiException, InterruptedException {
                 MockWebServer server = new MockWebServer();
+                server.enqueue(new MockResponse());
                 OkHttpClient httpClient = new OkHttpClient.Builder()
                                 .addInterceptor(new AuthenticationInterceptor(tokenProvider))
                                 .build();
@@ -75,13 +63,15 @@ public class AuthenticationInterceptorTest {
                 ApiClient client = new ApiClient(httpClient);
                 client.execute(call, null);
                 RecordedRequest request1 = server.takeRequest();
-                assert request1.getHeader("Authorization") == FinbourneToken.getAccessToken();
+                assertEquals("Bearer access_01", request1.getHeader("Authorization"));
         }
 
         @Test
         public void intercept_ShouldUpdateAuthHeaderOnEveryCall()
                         throws ApiException, FinbourneTokenException, InterruptedException, IOException {
                 MockWebServer server = new MockWebServer();
+                server.enqueue(new MockResponse());
+                server.enqueue(new MockResponse());
                 OkHttpClient httpClient = new OkHttpClient.Builder()
                                 .addInterceptor(new AuthenticationInterceptor(tokenProvider))
                                 .build();
@@ -92,12 +82,12 @@ public class AuthenticationInterceptorTest {
                 ApiClient client = new ApiClient(httpClient);
                 client.execute(call, null);
                 RecordedRequest request1 = server.takeRequest();
-                assert request1.getHeader("Authorization") == "Bearer access_01";
+                assertEquals("Bearer access_01", request1.getHeader("Authorization"));
                 // mock our token expiring and we now have an updated token to call api with
                 doReturn(anotherFinbourneToken).when(tokenProvider).get();
                 client.execute(call.clone(), null);
                 RecordedRequest request2 = server.takeRequest();
-                assert request2.getHeader("Authorization") == "Bearer access_02";
+                assertEquals("Bearer access_02", request2.getHeader("Authorization"));
                 server.close();
         }
 

@@ -24,7 +24,7 @@ public class RateLimitRetryInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
         Response response = chain.proceed(request);
-        int tryCount = 0;
+        int tryCount = 1;
         try {
             while (response.code() == 429 && tryCount < this.maxAttempts) {
                 Map<String, List<String>> responseHeaders = response.headers().toMultimap();
@@ -34,12 +34,19 @@ public class RateLimitRetryInterceptor implements Interceptor {
                 tryCount++;
                 response.close();
                 response = chain.proceed(request);
+
             }
-        } catch (InterruptedException | NullPointerException | NumberFormatException e) {
-            throw new IOException(e);
+        } catch (InterruptedException e) {
+            return response.newBuilder().message("Too many requests. Attempted to retry but was interrupted.").build();
+        } catch (NullPointerException e) {
+            return response.newBuilder()
+                    .message("Too many requests. Unable to retry as Retry-after header not provided").build();
+        } catch (NumberFormatException e) {
+            return response.newBuilder()
+                    .message("Too many requests. Unable to retry as unable to deserialize Retry-after header").build();
         }
+
         // otherwise just pass the original response on
         return response;
     }
-
 }

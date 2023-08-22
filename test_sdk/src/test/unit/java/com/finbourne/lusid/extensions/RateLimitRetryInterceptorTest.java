@@ -75,7 +75,8 @@ public class RateLimitRetryInterceptorTest {
                                 .build();
                 Call call = client.newCall(request);
                 ApiClient apiClient = new ApiClient(client);
-                ApiException expectedException = new ApiException("Retry-After header unavailable", 429,
+                ApiException expectedException = new ApiException(
+                                "Too many requests. Unable to retry as Retry-after header not provided", 429,
                                 mockTooManyRequestsResponse.getHeaders().toMultimap(), "");
                 ApiException exception = assertThrows(ApiException.class, () -> apiClient.execute(call, null));
                 assertEquals(expectedException.getMessage(), exception.getMessage());
@@ -101,7 +102,8 @@ public class RateLimitRetryInterceptorTest {
                                 .build();
                 Call call = client.newCall(request);
                 ApiClient apiClient = new ApiClient(client);
-                ApiException expectedException = new ApiException("Failed to parse Retry-After header", 429,
+                ApiException expectedException = new ApiException(
+                                "Too many requests. Unable to retry as unable to deserialize Retry-after header", 429,
                                 mockTooManyRequestsResponse.getHeaders().toMultimap(), "");
                 ApiException exception = assertThrows(ApiException.class, () -> apiClient.execute(call, null));
                 assertEquals(expectedException.getMessage(), exception.getMessage());
@@ -143,7 +145,7 @@ public class RateLimitRetryInterceptorTest {
                 MockWebServer server = new MockWebServer();
                 MockResponse mockTooManyRequestsResponse = new MockResponse()
                                 .setResponseCode(429)
-                                .addHeader("Retry-After", 10);
+                                .addHeader("Retry-After", 1);
                 MockResponse mockSuccessfulResponse = new MockResponse()
                                 .setResponseCode(200);
 
@@ -162,7 +164,7 @@ public class RateLimitRetryInterceptorTest {
 
                 ApiClient apiClient = new ApiClient(client);
                 apiClient.executeAsync(call, null, apiCallBackSpy);
-                verify(apiCallBackSpy, timeout(100)).onSuccess(any(), eq(200), any());
+                verify(apiCallBackSpy, timeout(2000)).onSuccess(any(), eq(200), any());
                 server.close();
         }
 
@@ -173,7 +175,7 @@ public class RateLimitRetryInterceptorTest {
                 MockWebServer server = new MockWebServer();
                 MockResponse mockTooManyRequestsResponse = new MockResponse()
                                 .setResponseCode(429)
-                                .addHeader("Retry-After", 10);
+                                .addHeader("Retry-After", 1);
                 MockResponse mockSuccessfulResponse = new MockResponse()
                                 .setResponseCode(200);
 
@@ -193,7 +195,7 @@ public class RateLimitRetryInterceptorTest {
 
                 ApiClient apiClient = new ApiClient(client);
                 apiClient.executeAsync(call, null, apiCallBackSpy);
-                verify(apiCallBackSpy, timeout(100)).onFailure(any(), eq(429), any());
+                verify(apiCallBackSpy, timeout(2000)).onFailure(any(), eq(429), any());
                 verify(apiCallBackSpy, never()).onSuccess(any(), eq(200), any());
                 server.close();
         }

@@ -4,6 +4,7 @@ import com.finbourne.lusid.extensions.ApiConfiguration;
 import com.finbourne.lusid.extensions.ApiConfigurationBuilder;
 import com.finbourne.lusid.extensions.ApiConfigurationException;
 import com.finbourne.lusid.extensions.CredentialsSource;
+import com.finbourne.lusid.extensions.TestContants;
 
 import okhttp3.OkHttpClient;
 import org.junit.Before;
@@ -66,7 +67,7 @@ public class HttpFinbourneTokenProviderTests {
     // Error cases
     @Test(expected = IllegalArgumentException.class)
     public void get_OnBadTokenUrl_ShouldThrowException() throws FinbourneTokenException, ApiConfigurationException {
-        ApiConfiguration apiConfiguration = new ApiConfigurationBuilder().build(CredentialsSource.credentialsFile);
+        ApiConfiguration apiConfiguration = new ApiConfigurationBuilder().build(TestContants.DUMMY_CREDENTIALS_FILE);
         OkHttpClient httpClient = new OkHttpClient.Builder().build();
         apiConfiguration.setTokenUrl("invalidTokenUrl");
 
