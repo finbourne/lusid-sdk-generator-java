@@ -93,13 +93,13 @@ public class ApiConfigurationBuilder {
             String proxyPassword = null;
 
             if (apiConfigValues.containsKey("proxy")) {
-            Map proxyConfig = (Map) apiConfigValues.get("proxy");
+                Map proxyConfig = (Map) apiConfigValues.get("proxy");
 
-            proxyAddress = (String) proxyConfig.get("proxyAddress");
-            proxyPort = (Integer) proxyConfig.get("proxyPort");
-            proxyUsername = (String) proxyConfig.get("username");
-            proxyPassword = (String) proxyConfig.get("password");
-        }
+                proxyAddress = (String) proxyConfig.get("proxyAddress");
+                proxyPort = (Integer) proxyConfig.get("proxyPort");
+                proxyUsername = (String) proxyConfig.get("username");
+                proxyPassword = (String) proxyConfig.get("password");
+            }
 
         return new ApiConfiguration(tokenUrl, username, password, clientId, clientSecret, apiUrl, applicationName,
                 personalAccessToken, proxyAddress, proxyPort, proxyUsername, proxyPassword);
