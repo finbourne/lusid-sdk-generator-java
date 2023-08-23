@@ -43,8 +43,8 @@ public class ApiFactoryBuilder {
                 System.getenv("FBN_PASSWORD") != null &&
                 System.getenv("FBN_CLIENT_ID") != null &&
                 System.getenv("FBN_CLIENT_SECRET") != null &&
-                System.getenv("FBN_{{application_name_to_upper}}_API_URL") != null) ||
-                (System.getenv("FBN_{{application_name_to_upper}}_API_URL") != null &&
+                System.getenv("FBN_{{#lambda.uppercase}}{{application}}{{/lambda.uppercase}}_API_URL") != null) ||
+                (System.getenv("FBN_{{#lambda.uppercase}}{{application}}{{/lambda.uppercase}}_API_URL") != null &&
                 System.getenv("FBN_ACCESS_TOKEN") != null));
     }
 }

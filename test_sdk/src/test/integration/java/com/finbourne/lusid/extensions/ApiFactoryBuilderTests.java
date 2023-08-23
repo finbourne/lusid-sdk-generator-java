@@ -28,6 +28,14 @@ public class ApiFactoryBuilderTests {
                 assertThatFactoryBuiltApiCanMakeLUSIDCalls(ApiFactory);
         }
 
+        @Test
+        public void build_WithEnvironmentVariables_ShouldReturnFactory()
+                        throws ApiException, ApiConfigurationException, FinbourneTokenException {
+                ApiFactory ApiFactory = ApiFactoryBuilder.build();
+                assertThat(ApiFactory, is(notNullValue()));
+                assertThatFactoryBuiltApiCanMakeLUSIDCalls(ApiFactory);
+        }
+
         private static void assertThatFactoryBuiltApiCanMakeLUSIDCalls(ApiFactory ApiFactory)
                         throws ApiException {
                 InstrumentsApi instrumentsApi = ApiFactory.build(InstrumentsApi.class);
