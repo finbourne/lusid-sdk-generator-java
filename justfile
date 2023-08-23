@@ -35,13 +35,15 @@ generate-local package_name=PACKAGE_NAME project_name=PROJECT_NAME swagger_path=
     # docker run -it --rm -v {{justfile_directory()}}/generate/.output/test:/usr/src/test -w /usr/src/sdk maven:3.8.7-openjdk-18-slim  /bin/bash -c "cd /usr/src/test && mvn versions:use-dep-version -Dincludes=com.finbourne:lusid-sdk -DdepVersion=2.0.0"
     # rm -R generate/.output/test
 
+link-tests:
+    ln -s {{justfile_directory()}}/test_sdk/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test  
+
 # for local testing - assumes maven on path, doesn't use docker to play friendly with IDEs.
 test-local:
-    # just get-swagger "test-swagger.json"
-    # just generate-local "lusid-sdk" "lusid" "test-swagger.json"
-    # mkdir -p generate/.output/sdk/src/test
-    # cp -r test_sdk/src/test/* generate/.output/sdk/src/test
-    mvn -f generate/.output/sdk install && mvn -f generate/.output/sdk compile && mvn -f generate/.output/sdk verify
+    just get-swagger "test-swagger.json"
+    just generate-local "lusid-sdk" "lusid" "test-swagger.json"
+    just link-tests
+    mvn -f generate/.output/sdk verify
 
     
 generate TARGET_DIR:
