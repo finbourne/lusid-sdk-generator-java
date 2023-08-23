@@ -17,14 +17,14 @@ public class ApiFactoryBuilder {
             throw new ApiConfigurationException("Environment variables to configure API client have not been set. See " +
                     " see https://support.lusid.com/getting-started-with-apis-sdks for details.");
         }
-        return createApiFactory(null, 10, 10);
+        return createApiFactory(null, DEFAULT_TIMEOUT_SECONDS, DEFAULT_TIMEOUT_SECONDS);
     }
 
     /**
     * Build a {@link ApiFactory} using the specified configuration file. For details on the format of the configuration file see https://support.lusid.com/getting-started-with-apis-sdks.
     */
     public static ApiFactory build(String configurationFile) throws ApiConfigurationException, FinbourneTokenException {
-       return build(configurationFile, 10, 10);
+       return build(configurationFile, DEFAULT_TIMEOUT_SECONDS, DEFAULT_TIMEOUT_SECONDS);
     }
 
     public static ApiFactory build(String configurationFile, int readTimeout, int writeTimeout) throws ApiConfigurationException, FinbourneTokenException {
