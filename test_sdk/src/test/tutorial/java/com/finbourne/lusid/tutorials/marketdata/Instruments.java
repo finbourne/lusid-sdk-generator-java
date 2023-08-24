@@ -39,7 +39,7 @@ public class Instruments {
     public static void setUp() throws Exception {
 
         ApiConfiguration apiConfiguration = new ApiConfigurationBuilder().build(CredentialsSource.credentialsFile);
-        ApiClient apiClient = new ApiClientBuilder().build(apiConfiguration, 30, 30);
+        ApiClient apiClient = new ApiClientBuilder().build(apiConfiguration);
 
         instrumentsApi = new InstrumentsApi(apiClient);
         propertyDefinitionsApi = new PropertyDefinitionsApi(apiClient);

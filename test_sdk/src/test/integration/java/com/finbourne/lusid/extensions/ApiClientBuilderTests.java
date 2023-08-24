@@ -86,8 +86,7 @@ public class ApiClientBuilderTests {
         int timeoutInSeconds = 20;
         int defaultTimeout = 10;
         ApiConfiguration apiConfiguration = new ApiConfigurationBuilder().build(CredentialsSource.credentialsFile);
-        ApiClient apiClient = new ApiClientBuilder().build(apiConfiguration, timeoutInSeconds, timeoutInSeconds,
-                timeoutInSeconds, 3);
+        ApiClient apiClient = new ApiClientBuilder().build(apiConfiguration, 3);
 
         ScopesApi scopesApi = new ScopesApi(apiClient);
         Instant start = Instant.now();

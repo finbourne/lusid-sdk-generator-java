@@ -17,8 +17,6 @@ import {{invokerPackage}}.extensions.auth.FinbourneTokenException;
 */
 public class ApiClientBuilder {
 
-    private static final int DEFAULT_TIMEOUT_SECONDS = 10;
-
     /**
     * Builds an ApiClient implementation configured against a secrets file. Typically used
     * for communicating with {{#lambda.camelcase}}{{application}}{{/lambda.camelcase}} via the APIs
@@ -33,7 +31,7 @@ public class ApiClientBuilder {
     */
     public ApiClient build(ApiConfiguration apiConfiguration) throws FinbourneTokenException {
 
-        return this.build(apiConfiguration, 10, 10);
+        return this.build(apiConfiguration, 3);
     }
 
     /**
@@ -46,17 +44,35 @@ public class ApiClientBuilder {
      * and automatically handles token refreshing on expiry.
      *
      * @param apiConfiguration configuration to connect to lusid API
-     * @param readTimeout      read timeout in seconds
-     * @param writeTimeout     write timeout in seconds
-     * @param connectTimeout   connection timeout in seconds
+     * @param retryMaxAttempts number of times to try to make request when rate limited
+
      * @return
      *
      * @throws FinbourneTokenException on failing to authenticate and retrieve an
      *                                 initial {@link FinbourneToken}
      */
-    public ApiClient build(ApiConfiguration apiConfiguration, int readTimeout, int writeTimeout, int connectTimeout,
-            int retryMaxAttempts) throws FinbourneTokenException {
-        return this.build(apiConfiguration, readTimeout, writeTimeout, connectTimeout, retryMaxAttempts, new Builder());
+    public ApiClient build(ApiConfiguration apiConfiguration, int retryMaxAttempts) throws FinbourneTokenException {
+        return this.build(apiConfiguration, retryMaxAttempts, new Builder());
+    }
+
+        /**
+     * Builds an ApiClient implementation configured against a secrets file.
+     * Typically used
+     * for communicating with {{#lambda.camelcase}}{{application}}{{/lambda.camelcase}} via the APIs
+     *
+     * ApiClient implementation enables use of REFRESH tokens (see
+     * https://support.finbourne.com/using-a-refresh-token)
+     * and automatically handles token refreshing on expiry.
+     *
+     * @param apiConfiguration configuration to connect to lusid API
+     * @param builder okHttpBuilder with custom settings.
+     * @return
+     *
+     * @throws FinbourneTokenException on failing to authenticate and retrieve an
+     *                                 initial {@link FinbourneToken}
+     */
+    public ApiClient build(ApiConfiguration apiConfiguration, Builder builder) throws FinbourneTokenException {
+        return this.build(apiConfiguration, 3, builder);
     }
 
     /**
@@ -67,22 +83,16 @@ public class ApiClientBuilder {
      * and automatically handles token refreshing on expiry.
      *
      * @param apiConfiguration configuration to connect to {{#lambda.camelcase}}{{application}}{{/lambda.camelcase}} API
-     * @param readTimeout read timeout in seconds
-     * @param writeTimeout write timeout in seconds
-     * @param connectTimeout connection timeout in seconds
+     * @param retryMaxAttempts number of times to try to make request when rate limited
      * @param httpClientBuilder {@link Builder} with some configuration already
      *                          set
      * @return
      *
      * @throws FinbourneTokenException on failing to authenticate and retrieve an initial {@link FinbourneToken}
      */
-     public ApiClient build(ApiConfiguration apiConfiguration, int readTimeout, int writeTimeout, int connectTimeout,
-            int retryMaxAttempts, Builder httpClientBuilder) throws FinbourneTokenException {
+     public ApiClient build(ApiConfiguration apiConfiguration, int retryMaxAttempts, Builder httpClientBuilder) throws FinbourneTokenException {
         // http client to use for api and auth calls
-        httpClientBuilder = httpClientBuilder.readTimeout(readTimeout, TimeUnit.SECONDS)
-                .writeTimeout(writeTimeout, TimeUnit.SECONDS)
-                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
-                .addInterceptor(new RateLimitRetryInterceptor(retryMaxAttempts));
+        httpClientBuilder = httpClientBuilder.addInterceptor(new RateLimitRetryInterceptor(retryMaxAttempts));
 
         // use a proxy if given
         if (apiConfiguration.getProxyAddress() != null) {
@@ -130,23 +140,4 @@ public class ApiClientBuilder {
         defaultApiClient.setBasePath(apiConfiguration.getApiUrl());
         return defaultApiClient;
     }
-
-    /**
-     * Builds an ApiClient implementation configured against a secrets file. Typically used
-     * for communicating with {{#lambda.camelcase}}{{application}}{{/lambda.camelcase}} via the APIs
-     *
-     * ApiClient implementation enables use of REFRESH tokens (see https://support.finbourne.com/using-a-refresh-token)
-     * and automatically handles token refreshing on expiry.
-     *
-     * @param apiConfiguration configuration to connect to {{#lambda.camelcase}}{{application}}{{/lambda.camelcase}} API
-     * @param readTimeout read timeout in seconds
-     * @param writeTimeout write timeout in seconds
-     * @return
-     *
-     * @throws FinbourneTokenException on failing to authenticate and retrieve an initial {@link FinbourneToken}
-     */
-    public ApiClient build(ApiConfiguration apiConfiguration, int readTimeout, int writeTimeout) throws FinbourneTokenException {
-        return this.build(apiConfiguration, readTimeout, writeTimeout, DEFAULT_TIMEOUT_SECONDS, 3);
-    }
-
 }

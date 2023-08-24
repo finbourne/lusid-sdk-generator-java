@@ -70,7 +70,7 @@ public class ApiClientBuilderTest {
         doReturn(server.url("").toString()).when(apiConfiguration).getTokenUrl();
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
-        ApiClient client = apiClientBuilder.build(apiConfiguration, 10, 10, 10, 10, clientBuilder);
+        ApiClient client = apiClientBuilder.build(apiConfiguration, clientBuilder);
         SocketAddress expectedSocketAddress = new InetSocketAddress(proxyHost, proxyPort);
         assertEquals(
                 expectedSocketAddress.toString(),
@@ -85,7 +85,7 @@ public class ApiClientBuilderTest {
         doReturn("").when(apiConfiguration).getPersonalAccessToken();
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
-        ApiClient client = apiClientBuilder.build(apiConfiguration, 10, 10, 10, 10, clientBuilder);
+        ApiClient client = apiClientBuilder.build(apiConfiguration, clientBuilder);
         Request.Builder requestBuilder = new Request.Builder().url("http://example.com");
         client.processHeaderParams(new HashMap<String, String>(), requestBuilder);
         Request result = requestBuilder.build();
@@ -100,7 +100,7 @@ public class ApiClientBuilderTest {
         doReturn("LUSID").when(apiConfiguration).getApplicationName();
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
-        ApiClient client = apiClientBuilder.build(apiConfiguration, 10, 10, 10, 10, clientBuilder);
+        ApiClient client = apiClientBuilder.build(apiConfiguration, clientBuilder);
         Request.Builder requestBuilder = new Request.Builder().url("http://example.com");
         client.processHeaderParams(new HashMap<String, String>(), requestBuilder);
         Request result = requestBuilder.build();
