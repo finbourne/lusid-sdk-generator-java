@@ -21,7 +21,7 @@
     "dateLibrary": "java8",
     "licenseName": "MIT",
     "hideGenerationTimestamp": true,
-    "useJakartaEE": true,
+    "useJakartaEe": true,
     "files": {
         "other/ApiClientBuilder.mustache": {
             "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
