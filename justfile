@@ -45,6 +45,10 @@ test-local:
     just link-tests
     mvn -f generate/.output/sdk verify
 
+test:
+    just get-swagger "test-swagger.json"
+    just generate-local "lusid-sdk" "lusid" "test-swagger.json"
+    docker run -it --rm -v {{justfile_directory()}}/generate/.output/sdk:/usr/src/sdk -w /usr/src/sdk maven:3.8.7-openjdk-18-slim  /bin/bash -c "cd /usr/src/sdk && mvn clean; mvn test"
     
 generate TARGET_DIR:
     @just generate-local
@@ -84,5 +88,3 @@ generate-and-publish-local:
     @just generate-local
     @just publish-only-local
 
-test:
-    ./test/test.sh
