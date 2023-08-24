@@ -16,7 +16,7 @@ import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
@@ -90,5 +90,21 @@ public class ApiClientBuilderTest {
         client.processHeaderParams(new HashMap<String, String>(), requestBuilder);
         Request result = requestBuilder.build();
         assertFalse(result.headers().names().contains("X-LUSID-Application"));
+    }
+
+    @Test
+    public void createApiClient_OnNoApplicationName_ShouldSetApplicationHeader() throws FinbourneTokenException {
+        doReturn(null).when(apiConfiguration).getApplicationName();
+        doReturn("http://example.com").when(apiConfiguration).getApiUrl();
+        doReturn("").when(apiConfiguration).getPersonalAccessToken();
+        doReturn("LUSID").when(apiConfiguration).getApplicationName();
+
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        ApiClient client = apiClientBuilder.build(apiConfiguration, 10, 10, 10, 10, clientBuilder);
+        Request.Builder requestBuilder = new Request.Builder().url("http://example.com");
+        client.processHeaderParams(new HashMap<String, String>(), requestBuilder);
+        Request result = requestBuilder.build();
+        assertTrue(result.headers().names().contains("X-LUSID-Application"));
+        assertEquals("LUSID", result.header("X-LUSID-Application"));
     }
 }

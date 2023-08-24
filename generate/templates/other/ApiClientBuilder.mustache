@@ -124,6 +124,9 @@ public class ApiClientBuilder {
                     "Cannot construct an API client with a null authorisation header. Ensure " +
                             "finbourne token generated is valid");
         }
+        if (apiConfiguration.getApplicationName() != null) {
+            defaultApiClient.addDefaultHeader("X-LUSID-Application", apiConfiguration.getApplicationName());
+        }
         defaultApiClient.setBasePath(apiConfiguration.getApiUrl());
         return defaultApiClient;
     }
