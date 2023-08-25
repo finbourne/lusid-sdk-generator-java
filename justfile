@@ -9,28 +9,46 @@ swagger_path := "./swagger.json"
 
 swagger_url := "https://example.lusid.com/api/swagger/v0/swagger.json"
 
-get-swagger:
+get-swagger output_path=swagger_path swagger_url=swagger_url:
     echo {{swagger_url}}
-    curl -s {{swagger_url}} > swagger.json
+    curl -s {{swagger_url}} > {{output_path}}
 
 build-docker-images: 
     docker build -t lusid-sdk-gen-java:latest --ssh default=$SSH_AUTH_SOCK -f Dockerfile generate
 
-generate-local:
-    mkdir -p /tmp/${PROJECT_NAME}_${PACKAGE_VERSION}
+generate-local package_name=PACKAGE_NAME project_name=PROJECT_NAME swagger_path=swagger_path:
+    mkdir -p /tmp/{{project_name}}_${PACKAGE_VERSION}
     envsubst < generate/config-template.json > generate/.config.json
-    docker run \
+    docker run --rm \
         -e JAVA_OPTS="-Dlog.level=error" \
         -e APPLICATION_NAME=${APPLICATION_NAME} \
         -e META_REQUEST_ID_HEADER_KEY=${META_REQUEST_ID_HEADER_KEY} \
         -e PACKAGE_VERSION=${PACKAGE_VERSION} \
-        -e PACKAGE_NAME=${PACKAGE_NAME} \
-        -e PROJECT_NAME=${PROJECT_NAME} \
+        -e PACKAGE_NAME={{package_name}} \
+        -e PROJECT_NAME={{project_name}} \
         -v $(pwd)/generate/:/usr/src/generate/ \
         -v $(pwd)/generate/.openapi-generator-ignore:/usr/src/generate/.output/.openapi-generator-ignore \
         -v $(pwd)/{{swagger_path}}:/tmp/swagger.json \
         lusid-sdk-gen-java:latest -- ./generate/generate.sh ./generate ./generate/.output /tmp/swagger.json .config.json
     rm -f generate/.output/.openapi-generator-ignore
+    # docker run -it --rm -v {{justfile_directory()}}/generate/.output/sdk:/usr/src/sdk -w /usr/src/sdk maven:3.8.7-openjdk-18-slim  /bin/bash -c "cd /usr/src/sdk && mvn clean; mvn test"
+    # docker run -it --rm -v {{justfile_directory()}}/generate/.output/test:/usr/src/test -w /usr/src/sdk maven:3.8.7-openjdk-18-slim  /bin/bash -c "cd /usr/src/test && mvn versions:use-dep-version -Dincludes=com.finbourne:lusid-sdk -DdepVersion=2.0.0"
+    # rm -R generate/.output/test
+
+link-tests:
+    ln -s {{justfile_directory()}}/test_sdk/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test  
+
+# for local testing - assumes maven on path, doesn't use docker to play friendly with IDEs.
+test-local:
+    just get-swagger "test-swagger.json"
+    just generate-local "lusid-sdk" "lusid" "test-swagger.json"
+    just link-tests
+    mvn -f generate/.output/sdk verify
+
+test:
+    just get-swagger "test-swagger.json"
+    just generate-local "lusid-sdk" "lusid" "test-swagger.json"
+    docker run -it --rm -v {{justfile_directory()}}/generate/.output/sdk:/usr/src/sdk -w /usr/src/sdk maven:3.8.7-openjdk-18-slim  /bin/bash -c "cd /usr/src/sdk && mvn clean; mvn test"
     
 generate TARGET_DIR:
     @just generate-local
@@ -70,5 +88,3 @@ generate-and-publish-local:
     @just generate-local
     @just publish-only-local
 
-test:
-    ./test/test.sh
