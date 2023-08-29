@@ -1,16 +1,15 @@
 FROM rust:latest as rust
 
-RUN cargo install just
+RUN rustup target add x86_64-unknown-linux-musl \
+    && cargo install --target=x86_64-unknown-linux-musl just
 
-FROM openapitools/openapi-generator-cli:latest as maven
+FROM openapitools/openapi-generator-cli:v6.6.0 as maven
 
-RUN apt update && apt -y install jq git maven
+RUN apt update && apt -y install jq git maven gettext-base libicu-dev default-jdk-headless
 COPY --from=rust /usr/local/cargo/bin/just /usr/bin/just
 
 RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
-
-ENTRYPOINT [ "/bin/bash" ]
 
 # Make ssh dir
 # Create known_hosts
@@ -22,3 +21,6 @@ RUN mkdir /root/.ssh/ \
 RUN --mount=type=ssh \
     git clone git@github.com:finbourne/lusid-sdk-doc-templates.git /tmp/docs \
     && git clone git@github.com:finbourne/lusid-sdk-workflow-template.git /tmp/workflows
+
+COPY generate/ /usr/src/generate
+COPY ./justfile /usr/src/
