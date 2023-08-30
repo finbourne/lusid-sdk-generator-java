@@ -131,4 +131,4 @@ publish-cicd SRC_DIR:
     
     mvn -e -f {{SRC_DIR}}/pom.xml test-compile compile
     mvn -f {{SRC_DIR}}/pom.xml versions:set -DnewVersion=${PACKAGE_VERSION}
-    mvn -f {{SRC_DIR}}/pom.xml -s {{SRC_DIR}}/settings.xml -P$server_id clean install deploy -Dmaven.test.skip=true
+    mvn -f {{SRC_DIR}}/pom.xml -s {{SRC_DIR}}/settings.xml clean install deploy -Dmaven.test.skip=true  ${extra_mvn_commandline_options}
