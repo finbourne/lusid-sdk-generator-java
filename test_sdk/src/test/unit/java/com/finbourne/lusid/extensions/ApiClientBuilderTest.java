@@ -71,7 +71,7 @@ public class ApiClientBuilderTest {
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
         ApiClient client = apiClientBuilder.build(apiConfiguration, clientBuilder);
-        SocketAddress expectedSocketAddress = new InetSocketAddress(proxyHost, proxyPort);
+        SocketAddress expectedSocketAddress = InetSocketAddress.createUnresolved(proxyHost, proxyPort);
         assertEquals(
                 expectedSocketAddress.toString(),
                 client.getHttpClient().proxy().address().toString());
