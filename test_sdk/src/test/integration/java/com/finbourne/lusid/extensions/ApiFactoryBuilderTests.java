@@ -40,7 +40,7 @@ public class ApiFactoryBuilderTests {
                         throws ApiException {
                 InstrumentsApi instrumentsApi = ApiFactory.build(InstrumentsApi.class);
                 ResourceListOfInstrumentIdTypeDescriptor instrumentIdTypeDescriptor = instrumentsApi
-                                .getInstrumentIdentifierTypes();
+                                .getInstrumentIdentifierTypes().execute();
                 assertThat("Instruments API created by factory should have returned instrument identifier types",
                                 instrumentIdTypeDescriptor, is(notNullValue()));
                 assertThat("Instrument identifier types returned by the Instrument API should not be empty",

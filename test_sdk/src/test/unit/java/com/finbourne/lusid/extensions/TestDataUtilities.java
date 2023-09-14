@@ -47,7 +47,7 @@ public class TestDataUtilities {
                 .created(effectiveDate);
 
         // create portfolio
-        Portfolio portfolio = this.transactionPortfoliosApi.createPortfolio(scope, request);
+        Portfolio portfolio = this.transactionPortfoliosApi.createPortfolio(scope, request).execute();
 
         assertEquals(portfolio.getId().getCode(), originalPortfolioId);
 

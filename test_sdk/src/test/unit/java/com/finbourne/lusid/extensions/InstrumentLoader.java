@@ -64,8 +64,8 @@ public class InstrumentLoader {
                                 put("Figi", new InstrumentIdValue().value("BBG000BKFZN3"));
                             }
                         }) }
-        }).collect(Collectors.toMap(data -> (String) data[0], data -> (InstrumentDefinition) data[1])),
-                DefaultScope);
+        }).collect(Collectors.toMap(data -> (String) data[0], data -> (InstrumentDefinition) data[1])))
+                .scope(DefaultScope).execute();
 
         return instrumentsResponse
                 .getValues()

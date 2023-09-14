@@ -59,17 +59,16 @@ public class Quotes {
                                                 .unit("USD"))
                                 .lineage("InternalSystem");
 
-                UpsertQuotesResponse result = quotesApi.upsertQuotes(TestDataUtilities.TutorialScope,
-                                Collections.singletonMap("correlationId", request));
+                UpsertQuotesResponse result = quotesApi.upsertQuotes(TestDataUtilities.TutorialScope).requestBody(
+                                Collections.singletonMap("correlationId", request)).execute();
 
                 assertThat(result.getFailed().size(), equalTo(0));
                 assertThat(result.getValues().size(), equalTo(1));
 
                 GetQuotesResponse quotesResponse = quotesApi.getQuotes(
-                                TestDataUtilities.TutorialScope,
-                                effectiveDate.toString(),
-                                null, null,
-                                Collections.singletonMap("correlationId1", quoteSeriesId));
+                                TestDataUtilities.TutorialScope).effectiveAt(
+                                effectiveDate.toString()).requestBody(
+                                Collections.singletonMap("correlationId1", quoteSeriesId)).execute();
 
                 Quote quote = quotesResponse.getValues().values().stream().findFirst().get();
 
@@ -99,11 +98,9 @@ public class Quotes {
                                 .map(d -> {
                                         try {
                                                 return quotesApi.getQuotes(
-                                                                TestDataUtilities.MarketDataScope,
-                                                                d.toString(),
-                                                                null, null,
-                                                                Collections.singletonMap("correlationId",
-                                                                                quoteSeriesId));
+                                                                TestDataUtilities.MarketDataScope
+                                                                ).effectiveAt(d.toString()).requestBody(Collections.singletonMap("correlationId",
+                                                                                quoteSeriesId)).execute();
                                         } catch (ApiException e) {
                                                 throw new RuntimeException(e);
                                         }

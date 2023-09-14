@@ -81,7 +81,7 @@ public class Bitemporal {
 
                 // add initial batch of transactions
                 final UpsertPortfolioTransactionsResponse initialResult = transactionPortfoliosApi
-                                .upsertTransactions(TutorialScope, portfolioId, newTransactions);
+                                .upsertTransactions(TutorialScope, portfolioId, newTransactions).execute();
 
                 OffsetDateTime asAtBatch1 = initialResult.getVersion().getAsAtDate();
 
@@ -91,7 +91,7 @@ public class Bitemporal {
                                 OffsetDateTime.of(2018, 1, 8, 0, 0, 0, 0, ZoneOffset.UTC), "Buy");
                 UpsertPortfolioTransactionsResponse addedResult = transactionPortfoliosApi.upsertTransactions(
                                 TutorialScope,
-                                portfolioId, Collections.singletonList(newTrade));
+                                portfolioId, Collections.singletonList(newTrade)).execute();
 
                 OffsetDateTime asAtBatch2 = addedResult.getVersion().getAsAtDate();
                 Thread.sleep(500);
@@ -102,7 +102,7 @@ public class Bitemporal {
                                 OffsetDateTime.of(2018, 1, 5, 0, 0, 0, 0, ZoneOffset.UTC), "Buy");
                 UpsertPortfolioTransactionsResponse backDatedResult = transactionPortfoliosApi.upsertTransactions(
                                 TutorialScope,
-                                portfolioId, Collections.singletonList(backDatedTrade));
+                                portfolioId, Collections.singletonList(backDatedTrade)).execute();
 
                 OffsetDateTime asAtBatch3 = backDatedResult.getVersion().getAsAtDate();
                 Thread.sleep(500);
@@ -110,32 +110,26 @@ public class Bitemporal {
                 // list transactions
                 VersionedResourceListOfTransaction transactions = transactionPortfoliosApi.getTransactions(
                                 TutorialScope,
-                                portfolioId, null, null, asAtBatch1, null, null, null, null, null);
+                                portfolioId).asAt(asAtBatch1).execute();
 
                 assertEquals(String.format("asAt %s", asAtBatch1), 3, transactions.getValues().size());
                 System.out.println("transactions at " + asAtBatch1);
                 printTransactions.accept(transactions.getValues());
 
-                transactions = transactionPortfoliosApi.getTransactions(TutorialScope, portfolioId, null, null,
-                                asAtBatch2,
-                                null, null, null, null, null);
+                transactions = transactionPortfoliosApi.getTransactions(TutorialScope, portfolioId).asAt(asAtBatch2).execute();
 
                 assertEquals(String.format("asAt %s", asAtBatch2), 4, transactions.getValues().size());
                 System.out.println("transactions at " + asAtBatch2);
                 printTransactions.accept(transactions.getValues());
 
-                transactions = transactionPortfoliosApi.getTransactions(TutorialScope, portfolioId, null, null,
-                                asAtBatch3,
-                                null, null, null, null, null);
+                transactions = transactionPortfoliosApi.getTransactions(TutorialScope, portfolioId).asAt(asAtBatch3).execute();
 
                 assertEquals(String.format("asAt %s", asAtBatch3), 5, transactions.getValues().size());
                 System.out.println("transactions at " + asAtBatch3);
                 printTransactions.accept(transactions.getValues());
 
                 // latest transactions
-                transactions = transactionPortfoliosApi.getTransactions(TutorialScope, portfolioId, null, null, null,
-                                null,
-                                null, null, null, null);
+                transactions = transactionPortfoliosApi.getTransactions(TutorialScope, portfolioId).execute();
 
                 assertEquals(5, transactions.getValues().size());
                 System.out.println("transactions at " + OffsetDateTime.now());

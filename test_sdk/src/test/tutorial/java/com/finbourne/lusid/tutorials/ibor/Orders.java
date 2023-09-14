@@ -69,7 +69,7 @@ public class Orders {
                                                         .dataTypeId(new ResourceId().scope("system").code("string"));
 
                                         propertyDefinitionsApi
-                                                        .createPropertyDefinition(propertyDefinition);
+                                                        .createPropertyDefinition(propertyDefinition).execute();
                                 } catch (ApiException apiException) {
                                         if (!apiException.getMessage().contains("PropertyAlreadyExists")) {
                                                 throw apiException;
@@ -145,7 +145,7 @@ public class Orders {
                                 .addOrderRequestsItem(request);
 
                 // We can ask the Orders API to upsert this order for us
-                List<Order> upsertResult = ordersApi.upsertOrders(requestSet).getValues();
+                List<Order> upsertResult = ordersApi.upsertOrders().orderSetRequest(requestSet).execute().getValues();
 
                 // The return gives us a list of orders upserted. The LUID for each has been
                 // mapped from the
@@ -221,7 +221,7 @@ public class Orders {
                                 .addOrderRequestsItem(request);
 
                 // We can ask the Orders API to upsert this order for us
-                List<Order> upsertResult = ordersApi.upsertOrders(requestSet).getValues();
+                List<Order> upsertResult = ordersApi.upsertOrders().orderSetRequest(requestSet).execute().getValues();
 
                 // The return gives us a list of orders upserted, and the LUID for each has been
                 // mapped from the
@@ -296,7 +296,7 @@ public class Orders {
                                 .addOrderRequestsItem(request);
 
                 // We can ask the Orders API to upsert this order for us
-                List<Order> upsertResult = ordersApi.upsertOrders(requestSet).getValues();
+                List<Order> upsertResult = ordersApi.upsertOrders().orderSetRequest(requestSet).execute().getValues();
 
                 // The return gives us a list of orders upserted, and the lusidinstrument for
                 // each has been mapped from the
@@ -325,7 +325,7 @@ public class Orders {
                                 .addOrderRequestsItem(updateRequest);
 
                 // We can ask the Orders API to upsert this order for us
-                List<Order> updateResult = ordersApi.upsertOrders(updateRequestSet).getValues();
+                List<Order> updateResult = ordersApi.upsertOrders().orderSetRequest(updateRequestSet).execute().getValues();
 
                 // The return gives us a list of orders upserted, and the lusidinstrument for
                 // each has been mapped from the
@@ -445,7 +445,7 @@ public class Orders {
                                 .addOrderRequestsItem(request3);
 
                 // We can ask the Orders API to upsert this order for us
-                ResourceListOfOrder upsertResult = ordersApi.upsertOrders(request);
+                ResourceListOfOrder upsertResult = ordersApi.upsertOrders().orderSetRequest(request).execute();
 
                 // The return gives us a list of orders upserted, and the lusidinstrument for
                 // each has been mapped from the
@@ -458,14 +458,8 @@ public class Orders {
                 String order2Filter = testScope + "/" + orderCode2;
                 String order3Filter = testScope + "/" + orderCode3;
 
-                List<Order> quantityFilter = ordersApi.listOrders(t,
-                                null,
-                                null,
-                                null,
-                                null,
-                                "Quantity gt 100 and Scope eq '" + testScope + "' and Id in '" + order1Filter + "', '"
-                                                + order2Filter + "', '" + order3Filter + "'",
-                                null)
+                List<Order> quantityFilter = ordersApi.listOrders().filter("Quantity gt 100 and Scope eq '" + testScope + "' and Id in '" + order1Filter + "', '"
+                                                + order2Filter + "', '" + order3Filter + "'").execute()
                                 .getValues();
                 assertEquals(2, quantityFilter.size());
                 assertTrue(quantityFilter.stream()

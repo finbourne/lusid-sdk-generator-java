@@ -87,10 +87,7 @@ public class Holdings {
                 // get the holds on T+10
                 VersionedResourceListOfPortfolioHolding holdings = transactionPortfoliosApi.getHoldings(
                                 TutorialScope,
-                                portfolioCode,
-                                datTPlus10.toString(),
-                                null, null, null,
-                                false);
+                                portfolioCode).effectiveAt(datTPlus10.toString()).byTaxlots(false).execute();
 
                 holdings.getValues().sort(Comparator.comparing(PortfolioHolding::getInstrumentUid));
 
@@ -197,8 +194,7 @@ public class Holdings {
                                                                                 .settlementDate(day1))));
 
                 // set the initial holdings on day 1
-                transactionPortfoliosApi.setHoldings(TutorialScope, portfolioCode, day1.toString(), holdingAdjustments,
-                                null);
+                transactionPortfoliosApi.setHoldings(TutorialScope, portfolioCode, day1.toString(), holdingAdjustments);
 
                 // add subsequent transactions on day 2
                 List<TransactionRequest> requests = Arrays.asList(
@@ -210,8 +206,7 @@ public class Holdings {
 
                 // get the holdings for day 2
                 VersionedResourceListOfPortfolioHolding holdings = transactionPortfoliosApi.getHoldings(TutorialScope,
-                                portfolioCode, day2.toString(),
-                                null, null, null, false);
+                                portfolioCode).effectiveAt( day2.toString()).byTaxlots(false).execute();
 
                 holdings.getValues().sort(Comparator.comparing(PortfolioHolding::getInstrumentUid));
 

@@ -109,7 +109,7 @@ public class Reconciliation {
                 // Add the transactions to LUSID
                 UpsertPortfolioTransactionsResponse upsertResult = transactionPortfoliosApi.upsertTransactions(
                                 TutorialScope,
-                                portfolioCode, todaysTransactions);
+                                portfolioCode, todaysTransactions).execute();
 
                 // Get the time of the last update
                 OffsetDateTime lastAsAt = upsertResult.getVersion().getAsAtDate();
@@ -130,8 +130,9 @@ public class Reconciliation {
                                                 .effectiveAt(today.plusHours(16).toString())
                                                 .asAt(lastAsAt));
 
-                ResourceListOfReconciliationBreak breaks = reconciliationsApi.reconcileHoldings(null, null, null, null,
-                                reconciliationRequest);
+                ResourceListOfReconciliationBreak breaks = reconciliationsApi.reconcileHoldings()
+                                                                .portfoliosReconciliationRequest(reconciliationRequest)
+                                                                .execute();
 
                 for (ReconciliationBreak value : breaks.getValues()) {
                         System.out.println(String.format("%s\t%f\t%f", value.getInstrumentUid(),

@@ -24,6 +24,10 @@ swagger_file=$3
 config_file_name=$4
 sdk_output_folder=$output_folder/sdk
 
+transformed_swagger=$(jq '$swagger[] + {"x-group-parameters":true}' --slurpfile swagger $3 --null-input)
+
+echo $transformed_swagger > $swagger_file
+
 if [[ -z $config_file_name || ! -f $gen_root/$config_file_name ]] ; then
     echo "[INFO] '$config_file_name' not found, using default config.json"
     config_file_name=config.json
