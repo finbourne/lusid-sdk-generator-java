@@ -148,14 +148,14 @@ public class Valuation {
 
                 // create and validate portfolio creation
                 Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope,
-                                transactionPortfolioRequest);
+                                transactionPortfolioRequest).execute();
                 assertEquals(portfolio.getId().getCode(), portfolioId);
 
                 // upload the transactions
                 transactionPortfoliosApi.upsertTransactions(TutorialScope, portfolioId, transactionRequests);
 
                 // upload the latest market quotes
-                quotesApi.upsertQuotes(quotesScope, quotesById);
+                quotesApi.upsertQuotes(quotesScope).requestBody(quotesById).execute();
 
                 // run aggregations at the instrument and portfolio levels
                 List<Map<String, Object>> aggregationResultsByInstrument = runAggregation(portfolioId, quotesScope,
@@ -208,7 +208,7 @@ public class Valuation {
                                 .created(EFFECTIVE_DATE);
 
                 // create portfolio
-                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request);
+                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request).execute();
 
                 assertEquals(portfolio.getId().getCode(), originalPortfolioId);
 
@@ -218,7 +218,7 @@ public class Valuation {
                 List<TransactionRequest> transactionRequests = createTransactionRequests.get();
 
                 // upload the transactions to LUSID
-                transactionPortfoliosApi.upsertTransactions(TutorialScope, portfolioId, transactionRequests);
+                transactionPortfoliosApi.upsertTransactions(TutorialScope, portfolioId, transactionRequests).execute();
 
                 // create the quotes
                 Map<String, UpsertQuoteRequest> quotes = Stream.of(
@@ -239,7 +239,7 @@ public class Valuation {
                                 .collect(toMap(x -> UUID.randomUUID().toString(), Function.identity()));
 
                 // upload the quotes
-                quotesApi.upsertQuotes(quotesScope, quotes);
+                quotesApi.upsertQuotes(quotesScope).requestBody(quotes).execute();
 
                 String recipeScope = "tutorials";
                 String recipeCode = "quotes";
@@ -273,7 +273,7 @@ public class Valuation {
                                 .groupBy(Collections.singletonList(GROUPBY_INSTRUMENT_NAME_KEY));
 
                 // do the aggregation
-                ListAggregationResponse aggregationResponse = aggregationApi.getValuation(valuationRequest);
+                ListAggregationResponse aggregationResponse = aggregationApi.getValuation().valuationRequest(valuationRequest).execute();
 
                 aggregationResponse.getData().sort((o1, o2) -> {
                         String name1 = (String) o1.get(GROUPBY_INSTRUMENT_NAME_KEY);
@@ -348,7 +348,7 @@ public class Valuation {
                                 .groupBy(Collections.singletonList(groupingKey));
 
                 // do the aggregation
-                ListAggregationResponse aggregationResponse = aggregationApi.getValuation(valuationRequest);
+                ListAggregationResponse aggregationResponse = aggregationApi.getValuation().valuationRequest(valuationRequest).execute();
 
                 aggregationResponse.getData().sort((o1, o2) -> {
                         String name1 = (String) o1.get(groupingKey);
@@ -363,7 +363,7 @@ public class Valuation {
         }
 
         private UpsertSingleStructuredDataResponse saveRecipe(ConfigurationRecipe recipe) throws ApiException {
-                return recipeApi.upsertConfigurationRecipe(new UpsertRecipeRequest().configurationRecipe(recipe));
+                return recipeApi.upsertConfigurationRecipe(new UpsertRecipeRequest().configurationRecipe(recipe)).execute();
         }
 
         /**

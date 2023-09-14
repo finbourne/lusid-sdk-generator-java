@@ -50,8 +50,7 @@ public class Instruments {
 
     private static void ensurePropertyDefinition(String code) throws ApiException {
         try {
-            propertyDefinitionsApi.getPropertyDefinition("Instrument", TestDataUtilities.TutorialScope, code, null,
-                    null);
+            propertyDefinitionsApi.getPropertyDefinition("Instrument", TestDataUtilities.TutorialScope, code).execute();
         } catch (ApiException e) {
 
             // Property definition doesn't exist (returns 404), so create one
@@ -134,8 +133,7 @@ public class Instruments {
                                     }
                                 }) }
 
-                }).collect(Collectors.toMap(data -> (String) data[0], data -> (InstrumentDefinition) data[1])),
-                        DefaultScope);
+                }).collect(Collectors.toMap(data -> (String) data[0], data -> (InstrumentDefinition) data[1]))).scope(DefaultScope).execute();
 
         assertThat(upsertInstrumentsResponse.getValues().size(), is(equalTo(5)));
     }
@@ -149,8 +147,7 @@ public class Instruments {
          */
 
         GetInstrumentsResponse lookedUpInstruments = instrumentsApi.getInstruments(FIGI_SCHEME,
-                Arrays.asList("BBG000BBLDF4"),
-                null, null, Arrays.asList(ISIN_PROPERTY_KEY, SEDOL_PROPERTY_KEY), DefaultScope, null);
+                Arrays.asList("BBG000BBLDF4")).propertyKeys(Arrays.asList(ISIN_PROPERTY_KEY, SEDOL_PROPERTY_KEY)).scope(DefaultScope).execute();
 
         assertThat(lookedUpInstruments.getValues(), hasKey("BBG000BBLDF4"));
 
@@ -172,7 +169,7 @@ public class Instruments {
     public void list_available_identifiers() throws ApiException {
 
         // Get the list of identifier schemes
-        ResourceListOfInstrumentIdTypeDescriptor identifiers = instrumentsApi.getInstrumentIdentifierTypes();
+        ResourceListOfInstrumentIdTypeDescriptor identifiers = instrumentsApi.getInstrumentIdentifierTypes().execute();
 
         // Schemes are returned as descriptors containing the name, property key and
         // uniqueness constraint
@@ -190,8 +187,7 @@ public class Instruments {
         final int pageSize = 5;
 
         // List the instruments restricting, the number that are returned
-        PagedResourceListOfInstrument instruments = instrumentsApi.listInstruments(null, null, null, null, null,
-                pageSize, null, null, DefaultScope, null);
+        PagedResourceListOfInstrument instruments = instrumentsApi.listInstruments().limit(pageSize).scope(DefaultScope).execute();
 
         assertThat(instruments.getValues().size(), is(equalTo(pageSize)));
     }
@@ -203,8 +199,7 @@ public class Instruments {
         List<String> figis = Arrays.asList("BBG000BBLDF4", "BBG00KW3SK62", "BBG000H6ZKT3");
 
         // Get a set of instruments querying by FIGIs
-        GetInstrumentsResponse instruments = instrumentsApi.getInstruments("Figi", figis, null, null, null,
-                DefaultScope, null);
+        GetInstrumentsResponse instruments = instrumentsApi.getInstruments("Figi", figis).scope(DefaultScope).execute();
 
         for (String figi : figis) {
             assertThat(instruments.getValues(), hasKey(figi));
@@ -223,16 +218,13 @@ public class Instruments {
         instrumentsApi.upsertInstrumentsProperties(Collections.singletonList(new UpsertInstrumentPropertyRequest()
                 .identifierType(FIGI_SCHEME)
                 .identifier(figi)
-                .properties(Collections.singletonList(new Property().key(propertyKey).value(propertyValue)))),
-                DefaultScope);
+                .properties(Collections.singletonList(new Property().key(propertyKey).value(propertyValue))))).scope(DefaultScope).execute();
 
         Instrument instrument = instrumentsApi.getInstrument(
                 FIGI_SCHEME,
-                figi,
-                null, null,
-                Collections.singletonList(propertyKey),
-                DefaultScope,
-                null);
+                figi
+                ).scope(DefaultScope).propertyKeys(                
+                Collections.singletonList(propertyKey)).execute();
 
         assertThat(instrument.getProperties(), hasSize(greaterThanOrEqualTo(1)));
 

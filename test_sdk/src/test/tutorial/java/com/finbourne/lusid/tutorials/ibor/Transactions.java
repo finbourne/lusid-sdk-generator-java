@@ -56,7 +56,7 @@ public class Transactions {
                                 .created(effectiveDate);
 
                 // create portfolio
-                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request);
+                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request).execute();
 
                 assertEquals(portfolio.getId().getCode(), originalPortfolioId);
 
@@ -88,7 +88,7 @@ public class Transactions {
                 // get the trade
                 VersionedResourceListOfTransaction transactions = transactionPortfoliosApi.getTransactions(
                                 TutorialScope,
-                                portfolioId, null, null, null, null, null, null, null, null);
+                                portfolioId).execute();
 
                 assertEquals(1, transactions.getValues().size());
                 assertEquals(transaction.getTransactionId(), transactions.getValues().get(0).getTransactionId());
@@ -109,7 +109,7 @@ public class Transactions {
                                 .created(effectiveDate);
 
                 // create portfolio
-                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request);
+                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request).execute();
 
                 assertEquals(portfolio.getId().getCode(), originalPortfolioId);
 
@@ -141,7 +141,7 @@ public class Transactions {
                 // get the trade
                 VersionedResourceListOfTransaction transactions = transactionPortfoliosApi.getTransactions(
                                 TutorialScope,
-                                portfolioId, null, null, null, null, null, null, null, null);
+                                portfolioId).execute();
 
                 assertEquals(1, transactions.getValues().size());
                 assertEquals(transaction.getTransactionId(), transactions.getValues().get(0).getTransactionId());
@@ -162,7 +162,7 @@ public class Transactions {
                                 .created(effectiveDate);
 
                 // create portfolio
-                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request);
+                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request).execute();
 
                 String portfolioId = portfolio.getId().getCode();
 
@@ -209,8 +209,8 @@ public class Transactions {
                 transactionPortfoliosApi.upsertTransactions(TutorialScope, portfolioId, Arrays.asList(tx1, tx2, tx3));
 
                 List<Transaction> txsBeforeDeletion = transactionPortfoliosApi
-                                .getTransactions(TutorialScope, portfolioId,
-                                                null, null, null, null, null, null, null, null)
+                                .getTransactions(TutorialScope, portfolioId)
+                                .execute()
                                 .getValues();
                 assertEquals(3, txsBeforeDeletion.size());
 
@@ -219,8 +219,8 @@ public class Transactions {
                 transactionPortfoliosApi.cancelTransactions(TutorialScope, portfolioId, txIdsToDelete);
 
                 List<Transaction> txsAfterDeletion = transactionPortfoliosApi
-                                .getTransactions(TutorialScope, portfolioId,
-                                                null, null, null, null, null, null, null, null)
+                                .getTransactions(TutorialScope, portfolioId)
+                                .execute()
                                 .getValues();
 
                 assertEquals(0, txsAfterDeletion.size());

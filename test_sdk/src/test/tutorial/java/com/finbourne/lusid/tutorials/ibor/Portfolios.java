@@ -71,7 +71,7 @@ public class Portfolios {
                                 .baseCurrency("GBP");
 
                 // Create the portfolio in LUSID in the specified scope
-                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request);
+                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request).execute();
 
                 // Confirm that the portfolio was successfully created. Any failures will result
                 // in
@@ -110,7 +110,7 @@ public class Portfolios {
 
                 // Create property definition
                 PropertyDefinition propertyDefinitionDto = propertyDefinitionsApi
-                                .createPropertyDefinition(propertyDefinition);
+                                .createPropertyDefinition(propertyDefinition).execute();
 
                 // Create the property value
                 Property property = new Property()
@@ -132,12 +132,12 @@ public class Portfolios {
                                 });
 
                 // create portfolio
-                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request);
+                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request).execute();
 
                 assertEquals(request.getCode(), portfolio.getId().getCode());
 
                 PortfolioProperties portfolioProperties = portfoliosApi.getPortfolioProperties(TutorialScope,
-                                portfolio.getId().getCode(), null, null);
+                                portfolio.getId().getCode()).execute();
 
                 assertEquals(1, portfolioProperties.getProperties().size());
                 assertEquals(property.getValue(),
@@ -186,7 +186,7 @@ public class Portfolios {
                 // Retrieve the transaction
                 VersionedResourceListOfTransaction transactions = transactionPortfoliosApi.getTransactions(
                                 TutorialScope,
-                                portfolioId, null, null, null, null, null, null, null, null);
+                                portfolioId).execute();
 
                 assertEquals(1, transactions.getValues().size());
                 assertEquals(transaction.getTransactionId(), transactions.getValues().get(0).getTransactionId());
@@ -223,7 +223,7 @@ public class Portfolios {
 
                 // Create the property definition
                 PropertyDefinition propertyDefinitionDto = propertyDefinitionsApi
-                                .createPropertyDefinition(propertyDefinition);
+                                .createPropertyDefinition(propertyDefinition).execute();
 
                 String portfolioId = testDataUtilities.createTransactionPortfolio(TutorialScope);
 
@@ -267,7 +267,7 @@ public class Portfolios {
                 // get the trade
                 VersionedResourceListOfTransaction transactions = transactionPortfoliosApi.getTransactions(
                                 TutorialScope,
-                                portfolioId, null, null, null, null, null, null, null, null);
+                                portfolioId).execute();
 
                 assertEquals(1, transactions.getValues().size());
                 assertEquals(transaction.getTransactionId(), transactions.getValues().get(0).getTransactionId());
@@ -298,9 +298,7 @@ public class Portfolios {
                 }
 
                 // Retrieve the list of portfolios from a given scope
-                ResourceListOfPortfolio portfolios = portfoliosApi.listPortfoliosForScope(scope, null, null, null, null,
-                                null,
-                                null, null, null, null);
+                ResourceListOfPortfolio portfolios = portfoliosApi.listPortfoliosForScope(scope).execute();
 
                 assertThat(portfolios.getValues().size(), is(equalTo(10)));
         }

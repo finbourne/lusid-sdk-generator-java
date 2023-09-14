@@ -65,7 +65,7 @@ public class Properties {
 
                 // Creaate the property definition
                 PropertyDefinition propertyDefinitionDto = propertyDefinitionsApi
-                                .createPropertyDefinition(propertyDefinition);
+                                .createPropertyDefinition(propertyDefinition).execute();
 
                 // Create the property value
                 Property property = new Property()
@@ -87,12 +87,12 @@ public class Properties {
                                 });
 
                 // create portfolio
-                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request);
+                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request).execute();
 
                 assertEquals(request.getCode(), portfolio.getId().getCode());
 
                 PortfolioProperties portfolioProperties = portfoliosApi.getPortfolioProperties(TutorialScope,
-                                portfolio.getId().getCode(), null, null);
+                                portfolio.getId().getCode()).execute();
 
                 assertEquals(1, portfolioProperties.getProperties().size());
                 assertEquals(property.getValue(),
@@ -129,7 +129,7 @@ public class Properties {
 
                 // Create the property definitions
                 PropertyDefinition metricPropertyDefinitionDto = propertyDefinitionsApi
-                                .createPropertyDefinition(metricPropertyDefinition);
+                                .createPropertyDefinition(metricPropertyDefinition).execute();
 
                 MetricValue metricValue = new MetricValue().value(new BigDecimal(1100000.0)).unit("GBP");
                 PropertyValue propertyValue = new PropertyValue().metricValue(metricValue);
@@ -154,12 +154,12 @@ public class Properties {
                                 });
 
                 // create portfolio
-                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request);
+                Portfolio portfolio = transactionPortfoliosApi.createPortfolio(TutorialScope, request).execute();
 
                 assertEquals(request.getCode(), portfolio.getId().getCode());
 
                 PortfolioProperties portfolioProperties = portfoliosApi.getPortfolioProperties(TutorialScope,
-                                portfolio.getId().getCode(), null, null);
+                                portfolio.getId().getCode()).execute();
 
                 assertEquals(1, portfolioProperties.getProperties().size());
                 assertEquals(property.getValue(), portfolioProperties.getProperties()

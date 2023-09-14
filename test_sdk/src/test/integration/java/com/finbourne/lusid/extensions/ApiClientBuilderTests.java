@@ -20,7 +20,8 @@ import java.time.Instant;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.assertEquals;
 
 public class ApiClientBuilderTests {
 
@@ -56,7 +57,7 @@ public class ApiClientBuilderTests {
 
         OAuth auth = (OAuth) apiClient.getAuthentication("oauth2");
 
-        assertThat(auth.getAccessToken(), equalTo(apiConfiguration.getPersonalAccessToken()));
+        assertEquals(auth.getAccessToken(), apiConfiguration.getPersonalAccessToken());
     }
 
     @Test
@@ -93,7 +94,7 @@ public class ApiClientBuilderTests {
 
         try {
             start = Instant.now();
-            ResourceListOfScopeDefinition scopes = scopesApi.listScopes(null);
+            ResourceListOfScopeDefinition scopes = scopesApi.listScopes().execute();;
 
             // successful call within timeout
         } catch (Exception ex) {
