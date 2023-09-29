@@ -22,6 +22,7 @@
     "licenseName": "MIT",
     "hideGenerationTimestamp": true,
     "useJakartaEe": true,
+    "annotationLibrary": "none",
     "files": {
         "other/ApiClientBuilder.mustache": {
             "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
