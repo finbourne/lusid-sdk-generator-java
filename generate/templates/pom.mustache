@@ -40,41 +40,6 @@
 
     <build>
         <plugins>
-        <!-- plugins -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.10</version>
-                <executions>
-                    <execution>
-                        <id>add_sources</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>{{{sourceFolder}}}</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>add_test_sources</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/test/java</source> <!-- Auto Generated Swagger Tests Only -->
-                                <source>src/test/unit/java</source>
-                                <source>src/test/integration/java</source>
-                                <source>src/test/tutorial/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>            
            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -162,6 +127,40 @@
                 </executions>
                 <configuration>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>add_sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>{{{sourceFolder}}}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>add_test_sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/test/java</source>
+                                <source>src/test/unit/java</source>
+                                <source>src/test/integration/java</source>
+                                <source>src/test/tutorial/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -269,11 +268,6 @@
     </profiles>
 
     <dependencies>
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-annotations</artifactId>
-            <version>2.2.10</version>
-        </dependency>
         {{#swagger1AnnotationLibrary}}
         <dependency>
             <groupId>io.swagger</groupId>
@@ -281,6 +275,11 @@
             <version>${swagger-annotations-version}</version>
         </dependency>
         {{/swagger1AnnotationLibrary}}
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>${swagger-annotations-version}</version>
+        </dependency>
         <!-- @Nullable annotation -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -444,7 +443,10 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <gson-fire-version>1.8.5</gson-fire-version>
+        {{#swagger1AnnotationLibrary}}
         <swagger-annotations-version>1.6.6</swagger-annotations-version>
+        {{/swagger1AnnotationLibrary}}
+        <swagger-annotations-version>2.2.10</swagger-annotations-version>
         <okhttp-version>4.10.0</okhttp-version>
         <gson-version>2.9.1</gson-version>
         <commons-lang3-version>3.12.0</commons-lang3-version>

@@ -1,7 +1,6 @@
 FROM rust:latest as rust
 
-RUN rustup target add x86_64-unknown-linux-musl \
-    && cargo install --target=x86_64-unknown-linux-musl just
+RUN cargo install just
 
 FROM openapitools/openapi-generator-cli:v7.0.0 as maven
 

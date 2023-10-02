@@ -25,7 +25,7 @@ get-swagger:
     curl -s {{swagger_url}} > swagger.json
 
 build-docker-images: 
-    docker build -t lusid-sdk-gen-java:latest --ssh default=$SSH_AUTH_SOCK -f Dockerfile generate
+    docker build -t lusid-sdk-gen-java:latest --ssh default=$SSH_AUTH_SOCK -f Dockerfile .
 
 generate-local:
     envsubst < generate/config-template.json > generate/.config.json
@@ -100,7 +100,17 @@ generate-cicd TARGET_DIR:
 
 publish-only-local:
     mkdir -p ${JAVA_PACKAGE_LOCATION}
-    docker run \
+    mkdir -p {{justfile_directory()}}/generate/.output/sdk/src/test/
+    cp -R {{justfile_directory()}}/test_sdk/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test/
+    docker run -it --rm \
+        -e FBN_TOKEN_URL=${FBN_TOKEN_URL} \
+        -e FBN_USERNAME=${FBN_USERNAME} \
+        -e FBN_PASSWORD=${FBN_PASSWORD} \
+        -e FBN_CLIENT_ID=${FBN_CLIENT_ID} \
+        -e FBN_CLIENT_SECRET=${FBN_CLIENT_SECRET} \
+        -e FBN_LUSID_API_URL=${FBN_LUSID_API_URL} \
+        -e FBN_APP_NAME=${FBN_APP_NAME} \
+        -e FBN_ACCESS_TOKEN=${FBN_ACCESS_TOKEN} \
         -e APPLICATION_NAME=${APPLICATION_NAME} \
         -e META_REQUEST_ID_HEADER_KEY=${META_REQUEST_ID_HEADER_KEY} \
         -e PACKAGE_VERSION=${PACKAGE_VERSION} \
@@ -112,7 +122,7 @@ publish-only-local:
         lusid-sdk-gen-java:latest -- "/usr/src/publish.sh"
 
 publish-only:
-    docker run \
+    docker run -it --rm \
         -e PACKAGE_VERSION=${PACKAGE_VERSION} \
         -v $(pwd)/generate/.output:/usr/src \
         -v $(pwd)/publish/publish.sh:/usr/src/publish.sh \

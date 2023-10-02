@@ -66,6 +66,7 @@ java ${JAVA_OPTS} -jar /opt/openapi-generator/modules/openapi-generator-cli/targ
 
 # remove redundant generated build files
 shopt -s extglob
+set +e
 rm -f $sdk_output_folder/.openapi-generator-ignore
 rm -rf $sdk_output_folder/.openapi-generator/
 shopt -u extglob
@@ -74,6 +75,7 @@ rm -f $output_folder/.openapi-generator-ignore
 rm -f $sdk_output_folder/README.md
 rm -f $output_folder/api
 rm -f $sdk_output_folder/pom.xml.versionsBackup
+set -e
 
 mkdir -p $output_folder/docs/
 cp -R /tmp/docs/docs/* $output_folder/docs/
