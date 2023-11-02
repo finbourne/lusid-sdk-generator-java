@@ -1,4 +1,4 @@
-FROM rust:latest as rust
+FROM rust:slim-buster as rust
 
 RUN cargo install just
 

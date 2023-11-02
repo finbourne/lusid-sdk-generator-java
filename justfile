@@ -137,8 +137,9 @@ generate-and-publish-local:
     @just publish-only-local
 
 publish-cicd SRC_DIR:
+    #!/bin/bash -ex
     echo "PACKAGE_VERSION to publish: ${PACKAGE_VERSION}"
     
-    mvn -e -f {{SRC_DIR}}/pom.xml test-compile compile
+    # mvn -e -f {{SRC_DIR}}/pom.xml test-compile compile
     mvn -f {{SRC_DIR}}/pom.xml versions:set -DnewVersion=${PACKAGE_VERSION}
-    mvn -f {{SRC_DIR}}/pom.xml -s {{SRC_DIR}}/settings.xml clean install deploy -Dmaven.test.skip=true  ${extra_mvn_commandline_options}
+    mvn -f {{SRC_DIR}}/pom.xml -s {{SRC_DIR}}/settings.xml clean deploy -Dmaven.test.skip=true ${extra_mvn_commandline_options}
