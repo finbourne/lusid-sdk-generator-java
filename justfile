@@ -45,11 +45,26 @@ generate-local:
 link-tests:
     ln -s {{justfile_directory()}}/test_sdk/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test  
 
+move-for-testing GENERATED_DIR:
+    mkdir -p .test_temp
+    cp -R {{justfile_directory()}}/{{GENERATED_DIR}}/sdk .test_temp/sdk
+    cp -R {{justfile_directory()}}/test_sdk/src/test/ .test_temp/sdk/src/test/
+
 # for local testing - assumes maven on path, doesn't use docker to play friendly with IDEs.
 test-local:
     @just generate-local
     @just link-tests
     mvn -f generate/.output/sdk verify
+
+test-moved:
+    @just generate-local
+    @just move-for-tests
+    mvn -f .test_temp/sdk verify
+
+# to be run after $(just generate-cicd {{GENERATED_DIR}})
+test-cicd GENERATED_DIR:
+    @just move-for-testing {{GENERATED_DIR}}
+    mvn -f .test_temp/sdk verify
 
 test:
     @just generate-local
