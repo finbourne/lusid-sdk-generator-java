@@ -49,7 +49,7 @@ link-tests:
 
 move-for-testing GENERATED_DIR:
     mkdir -p .test_temp
-    cp -R {{justfile_directory()}}/{{GENERATED_DIR}}/sdk .test_temp/sdk
+    cp -R {{GENERATED_DIR}}/sdk .test_temp/sdk
     cp -R {{justfile_directory()}}/test_sdk/src/test/ .test_temp/sdk/src/test/
     cp {{justfile_directory()}}/pom.dev.xml .test_temp/sdk/pom.xml
 
@@ -62,7 +62,7 @@ test-local:
 # to be run after $(just generate-cicd {{GENERATED_DIR}})
 test-cicd GENERATED_DIR:
     @just move-for-testing {{GENERATED_DIR}}
-    mvn -f .test_temp/sdk verify
+    mvn -f .test_temp/sdk test
 
 test:
     @just generate-local
