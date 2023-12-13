@@ -44,13 +44,13 @@ generate-local:
     mv generate/.output/sdk/pom.dev.xml {{justfile_directory()}}/pom.dev.xml
 
 link-tests:
-    ln -s {{justfile_directory()}}/test_all_sdks/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test  
+    ln -s {{justfile_directory()}}/test_sdk/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test  
     cp {{justfile_directory()}}/pom.dev.xml {{justfile_directory()}}/generate/.output/sdk/pom.xml
 
 move-for-testing GENERATED_DIR:
     mkdir -p .test_temp
     cp -R {{GENERATED_DIR}}/sdk .test_temp/sdk
-    cp -R {{justfile_directory()}}/test_all_sdks/src/test/ .test_temp/sdk/src/test/
+    cp -R {{justfile_directory()}}/test_sdk/src/test/ .test_temp/sdk/src/test/
     cp {{justfile_directory()}}/pom.dev.xml .test_temp/sdk/pom.xml
 
 # for local testing - assumes maven on path, doesn't use docker to play friendly with IDEs.
@@ -67,7 +67,7 @@ test-cicd GENERATED_DIR:
 test:
     @just generate-local
     mkdir -p {{justfile_directory()}}/generate/.output/sdk/src/test/
-    cp -R {{justfile_directory()}}/test_all_sdks/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test/
+    cp -R {{justfile_directory()}}/test_sdk/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test/
     docker run -it --rm \
         -e FBN_TOKEN_URL=${FBN_TOKEN_URL} \
         -e FBN_USERNAME=${FBN_USERNAME} \
@@ -116,7 +116,7 @@ generate-cicd TARGET_DIR:
 publish-only-local:
     mkdir -p ${JAVA_PACKAGE_LOCATION}
     mkdir -p {{justfile_directory()}}/generate/.output/sdk/src/test/
-    cp -R {{justfile_directory()}}/test_all_sdks/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test/
+    cp -R {{justfile_directory()}}/test_sdk/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test/
     docker run -it --rm \
         -e FBN_TOKEN_URL=${FBN_TOKEN_URL} \
         -e FBN_USERNAME=${FBN_USERNAME} \

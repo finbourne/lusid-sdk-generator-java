@@ -23,4 +23,4 @@ RUN --mount=type=ssh \
 
 COPY generate/ /usr/src/generate
 COPY ./justfile /usr/src/
-COPY test_all_sdks/ /usr/src/test_all_sdks
+COPY test_sdk/ /usr/src/test_sdk

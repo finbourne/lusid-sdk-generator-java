@@ -19,4 +19,4 @@ COPY docs/. /tmp/docs/
 COPY workflows/. /tmp/workflows/
 COPY generate/ /usr/src/generate
 COPY ./justfile /usr/src/justfile
-COPY test_all_sdks/ /usr/src/test_all_sdks
+COPY test_sdk/ /usr/src/test_sdk
