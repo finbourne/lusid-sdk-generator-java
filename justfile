@@ -41,15 +41,28 @@ generate-local:
         -v {{justfile_directory()}}/{{swagger_path}}:/tmp/swagger.json \
         lusid-sdk-gen-java:latest -- ./generate/generate.sh ./generate ./generate/.output /tmp/swagger.json .config.json
     rm -f generate/.output/.openapi-generator-ignore
+    mv generate/.output/sdk/pom.dev.xml {{justfile_directory()}}/pom.dev.xml
 
 link-tests:
     ln -s {{justfile_directory()}}/test_sdk/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test  
+    cp {{justfile_directory()}}/pom.dev.xml {{justfile_directory()}}/generate/.output/sdk/pom.xml
+
+move-for-testing GENERATED_DIR:
+    mkdir -p .test_temp
+    cp -R {{GENERATED_DIR}}/sdk .test_temp/sdk
+    cp -R {{justfile_directory()}}/test_sdk/src/test/ .test_temp/sdk/src/test/
+    cp {{justfile_directory()}}/pom.dev.xml .test_temp/sdk/pom.xml
 
 # for local testing - assumes maven on path, doesn't use docker to play friendly with IDEs.
 test-local:
     @just generate-local
     @just link-tests
     mvn -f generate/.output/sdk verify
+
+# to be run after $(just generate-cicd {{GENERATED_DIR}})
+test-cicd GENERATED_DIR:
+    @just move-for-testing {{GENERATED_DIR}}
+    mvn -f .test_temp/sdk test
 
 test:
     @just generate-local
@@ -78,6 +91,7 @@ generate TARGET_DIR:
     rm -rf {{TARGET_DIR}}/sdk/docs
     
     mv -R generate/.output/* {{TARGET_DIR}}
+    mv generate/.output/sdk/pom.dev.xml {{justfile_directory()}}/pom.dev.xml
 
 # Generate an SDK from a swagger.json and copy the output to the TARGET_DIR
 generate-cicd TARGET_DIR:
@@ -94,6 +108,7 @@ generate-cicd TARGET_DIR:
     rm -rf {{TARGET_DIR}}/sdk/${APPLICATION_NAME}
     rm -rf {{TARGET_DIR}}/sdk/docs
     
+    mv generate/.output/sdk/pom.dev.xml {{justfile_directory()}}/pom.dev.xml
     cp -R generate/.output/. {{TARGET_DIR}}
     echo "copied output to {{TARGET_DIR}}"
     ls {{TARGET_DIR}}
