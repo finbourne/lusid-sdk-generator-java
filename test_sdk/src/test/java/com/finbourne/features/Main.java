@@ -14,7 +14,7 @@ public class Main {
         Options options = new Options();
 
         // Configure package parameter
-        Option pkg = new Option("p", "package", true, "package name, eg. 'com.finbourne.lusid.tutorials'");
+        Option pkg = new Option("p", "package", true, "package name, eg. 'com.finbourne.TO_BE_REPLACED.tutorials'");
         pkg.setRequired(true);
         options.addOption(pkg);
 
