@@ -1,14 +1,14 @@
-package com.finbourne.lusid.extensions.auth;
+package com.finbourne.TO_BE_REPLACED.extensions.auth;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.finbourne.lusid.extensions.auth.FinbourneToken;
-import com.finbourne.lusid.extensions.auth.FinbourneTokenException;
-import com.finbourne.lusid.extensions.auth.HttpFinbourneTokenProvider;
-import com.finbourne.lusid.extensions.auth.RefreshingTokenProvider;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneToken;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneTokenException;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.HttpFinbourneTokenProvider;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.RefreshingTokenProvider;
 
 import java.io.IOException;
 import java.time.LocalDateTime;

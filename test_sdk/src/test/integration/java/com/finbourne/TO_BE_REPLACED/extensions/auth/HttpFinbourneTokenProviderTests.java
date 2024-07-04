@@ -1,10 +1,10 @@
-package com.finbourne.lusid.extensions.auth;
+package com.finbourne.TO_BE_REPLACED.extensions.auth;
 
-import com.finbourne.lusid.extensions.ApiConfiguration;
-import com.finbourne.lusid.extensions.ApiConfigurationBuilder;
-import com.finbourne.lusid.extensions.ApiConfigurationException;
-import com.finbourne.lusid.extensions.CredentialsSource;
-import com.finbourne.lusid.extensions.TestContants;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfiguration;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationBuilder;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationException;
+import com.finbourne.TO_BE_REPLACED.extensions.CredentialsSource;
+import com.finbourne.TO_BE_REPLACED.extensions.TestContants;
 
 import okhttp3.OkHttpClient;
 import org.junit.Before;

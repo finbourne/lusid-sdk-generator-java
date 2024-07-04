@@ -1,15 +1,13 @@
-package com.finbourne.lusid.extensions;
+package com.finbourne.TO_BE_REPLACED.extensions;
 
-import com.finbourne.lusid.ApiClient;
-import com.finbourne.lusid.api.ScopesApi;
-import com.finbourne.lusid.auth.Authentication;
-import com.finbourne.lusid.auth.OAuth;
-import com.finbourne.lusid.extensions.ApiClientBuilder;
-import com.finbourne.lusid.extensions.ApiConfiguration;
-import com.finbourne.lusid.extensions.ApiConfigurationBuilder;
-import com.finbourne.lusid.extensions.ApiConfigurationException;
-import com.finbourne.lusid.extensions.auth.FinbourneTokenException;
-import com.finbourne.lusid.model.ResourceListOfScopeDefinition;
+import com.finbourne.TO_BE_REPLACED.ApiClient;
+import com.finbourne.TO_BE_REPLACED.auth.Authentication;
+import com.finbourne.TO_BE_REPLACED.auth.OAuth;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiClientBuilder;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfiguration;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationBuilder;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationException;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneTokenException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -80,29 +78,4 @@ public class ApiClientBuilderTests {
                 // proxy strs
                 "", 8888, "", "");
     }
-
-    @Test
-    public void call_Api_With_Timeout() throws Exception {
-
-        int timeoutInSeconds = 20;
-        int defaultTimeout = 10;
-        ApiConfiguration apiConfiguration = new ApiConfigurationBuilder().build(CredentialsSource.credentialsFile);
-        ApiClient apiClient = new ApiClientBuilder().build(apiConfiguration, 3);
-
-        ScopesApi scopesApi = new ScopesApi(apiClient);
-        Instant start = Instant.now();
-
-        try {
-            start = Instant.now();
-            ResourceListOfScopeDefinition scopes = scopesApi.listScopes().execute();;
-
-            // successful call within timeout
-        } catch (Exception ex) {
-            Instant finish = Instant.now();
-            long elapsed = Duration.between(start, finish).toMillis() / 1000;
-
-            assertThat(elapsed, greaterThanOrEqualTo((long) defaultTimeout));
-        }
-    }
-
 }

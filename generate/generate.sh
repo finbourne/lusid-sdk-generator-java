@@ -1,4 +1,13 @@
-#!/bin/bash -e
+#!/bin/bash
+
+set -EeTuo pipefail
+
+failure() {
+    local lineno=$1
+    local msg=$2
+    echo "Failed at $lineno: $msg"
+}
+trap 'failure ${LINENO} "$BASH_COMMAND"' ERR
 
 if [[ ${#1} -eq 0 ]]; then
     echo
@@ -23,6 +32,7 @@ output_folder=$2
 swagger_file=$3
 config_file_name=$4
 sdk_output_folder=$output_folder/sdk
+JAVA_OPTS=${JAVA_OPTS:--Dlog.level=info}
 
 transformed_swagger=$(jq '$swagger[] + {"x-group-parameters":true}' --slurpfile swagger $3 --null-input)
 

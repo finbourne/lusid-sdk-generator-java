@@ -1,7 +1,7 @@
-package com.finbourne.lusid.extensions.auth;
+package com.finbourne.TO_BE_REPLACED.extensions.auth;
 
-import com.finbourne.lusid.extensions.ApiConfiguration;
-import com.finbourne.lusid.extensions.auth.HttpFinbourneTokenProvider;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfiguration;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.HttpFinbourneTokenProvider;
 
 import okhttp3.OkHttpClient;
 import org.junit.Before;

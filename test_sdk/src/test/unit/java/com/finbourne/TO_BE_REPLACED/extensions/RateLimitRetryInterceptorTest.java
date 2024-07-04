@@ -1,4 +1,4 @@
-package com.finbourne.lusid.extensions;
+package com.finbourne.TO_BE_REPLACED.extensions;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -13,10 +13,10 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.finbourne.lusid.ApiCallback;
-import com.finbourne.lusid.ApiClient;
-import com.finbourne.lusid.ApiException;
-import com.finbourne.lusid.ApiResponse;
+import com.finbourne.TO_BE_REPLACED.ApiCallback;
+import com.finbourne.TO_BE_REPLACED.ApiClient;
+import com.finbourne.TO_BE_REPLACED.ApiException;
+import com.finbourne.TO_BE_REPLACED.ApiResponse;
 
 import okhttp3.Call;
 import okhttp3.OkHttpClient;

@@ -1,14 +1,14 @@
-package com.finbourne.lusid.extensions;
+package com.finbourne.TO_BE_REPLACED.extensions;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import com.finbourne.lusid.extensions.ApiConfiguration;
-import com.finbourne.lusid.extensions.ApiConfigurationBuilder;
-import com.finbourne.lusid.extensions.ApiConfigurationException;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfiguration;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationBuilder;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationException;
 
-import static com.finbourne.lusid.extensions.TestContants.DUMMY_CREDENTIALS_FILE;
+import static com.finbourne.TO_BE_REPLACED.extensions.TestContants.DUMMY_CREDENTIALS_FILE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.doReturn;

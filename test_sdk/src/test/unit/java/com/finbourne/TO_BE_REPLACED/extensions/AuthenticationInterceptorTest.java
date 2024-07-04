@@ -1,9 +1,9 @@
-package com.finbourne.lusid.extensions;
+package com.finbourne.TO_BE_REPLACED.extensions;
 
-import com.finbourne.lusid.ApiCallback;
-import com.finbourne.lusid.ApiClient;
-import com.finbourne.lusid.ApiException;
-import com.finbourne.lusid.Pair;
+import com.finbourne.TO_BE_REPLACED.ApiCallback;
+import com.finbourne.TO_BE_REPLACED.ApiClient;
+import com.finbourne.TO_BE_REPLACED.ApiException;
+import com.finbourne.TO_BE_REPLACED.Pair;
 
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
@@ -12,9 +12,9 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
-import com.finbourne.lusid.extensions.auth.FinbourneToken;
-import com.finbourne.lusid.extensions.auth.FinbourneTokenException;
-import com.finbourne.lusid.extensions.auth.RefreshingTokenProvider;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneToken;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneTokenException;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.RefreshingTokenProvider;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
