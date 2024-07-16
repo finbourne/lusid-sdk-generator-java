@@ -23,6 +23,7 @@ export FBN_USERNAME := `echo ${FBN_USERNAME:-username}`
 export FBN_PASSWORD := `echo ${FBN_PASSWORD:-password}`
 export FBN_CLIENT_ID := `echo ${FBN_CLIENT_ID:-client-id}`
 export FBN_CLIENT_SECRET := `echo ${FBN_CLIENT_SECRET:-client-secret}`
+export EXCLUDE_TESTS := `echo ${EXCLUDE_TESTS:-true}`
 
 swagger_path := "./swagger.json"
 
