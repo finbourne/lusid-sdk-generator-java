@@ -1,0 +1,44 @@
+```java
+import {{{modelPackage}}}.*;
+import {{{package}}}.{{{classname}}};
+import {{{invokerPackage}}}.extensions.ApiConfigurationException;
+import {{{invokerPackage}}}.extensions.ApiFactoryBuilder;
+import {{{invokerPackage}}}.extensions.auth.FinbourneTokenException;
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+
+public class {{{classname}}}Example {
+
+    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException, ApiConfigurationException, FinbourneTokenException {
+        String fileName = "secrets.json";
+        try(PrintWriter writer = new PrintWriter(fileName, "UTF-8")) {
+          writer.write("{" +
+            "\"api\": {" +
+            "    \"tokenUrl\": \"<your-token-url>\"," +
+            "    \"{{#lambda.camelcase}}{{application}}{{/lambda.camelcase}}Url\": \"https://<your-domain>.lusid.com{{basePathWithoutHost}}\"," +
+            "    \"username\": \"<your-username>\"," +
+            "    \"password\": \"<your-password>\"," +
+            "    \"clientId\": \"<your-client-id>\"," +
+            "    \"clientSecret\": \"<your-client-secret>\"" +
+            "  }" +
+            "}");
+        }
+
+        {{{classname}}} apiInstance = ApiFactoryBuilder.build(fileName).build({{{classname}}}.class);
+        {{#allParams}}
+        {{{dataType}}} {{{paramName}}} = {{{example}}}; // {{{dataType}}} | {{{description}}}
+        {{/allParams}}
+        try {
+            {{#returnType}}{{{.}}} result = {{/returnType}}apiInstance.{{{operationId}}}({{#allParams}}{{{paramName}}}{{^-last}}, {{/-last}}{{/allParams}}).execute();{{#returnType}}
+            System.out.println(result.toJson());{{/returnType}}
+        } catch (ApiException e) {
+            System.err.println("Exception when calling {{{classname}}}#{{{operationId}}}");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```

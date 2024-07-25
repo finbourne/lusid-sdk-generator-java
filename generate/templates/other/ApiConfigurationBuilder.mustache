@@ -53,7 +53,10 @@ public class ApiConfigurationBuilder {
         String password = System.getenv("FBN_PASSWORD");
         String clientId = System.getenv("FBN_CLIENT_ID");
         String clientSecret = System.getenv("FBN_CLIENT_SECRET");
-        String apiUrl = System.getenv("FBN_{{#lambda.uppercase}}{{application}}{{/lambda.uppercase}}_API_URL");
+        String apiUrl = System.getenv("FBN_{{#lambda.uppercase}}{{#lambda.snakecase}}{{application}}{{/lambda.snakecase}}{{/lambda.uppercase}}_URL");
+        if (apiUrl == null) {
+            apiUrl = System.getenv("FBN_{{#lambda.uppercase}}{{application}}{{/lambda.uppercase}}_API_URL");
+        }
         String personalAccessToken = System.getenv("FBN_ACCESS_TOKEN");
 
         //  optional variables
@@ -83,7 +86,10 @@ public class ApiConfigurationBuilder {
             String password = (String) apiConfig.get("password");
             String clientId = (String) apiConfig.get("clientId");
             String clientSecret = (String) apiConfig.get("clientSecret");
-            String apiUrl = (String) apiConfig.get("{{#lambda.camelcase}}{{^isLusidPackage}}{{packageName}}{{/isLusidPackage}}-api-Url{{/lambda.camelcase}}");
+            String apiUrl = (String) apiConfig.get("{{#lambda.camelcase}}{{application}}Url{{/lambda.camelcase}}");
+            if (apiUrl == null) {
+                apiUrl = (String) apiConfig.get("{{#lambda.camelcase}}{{^isLusidPackage}}{{packageName}}{{/isLusidPackage}}apiUrl{{/lambda.camelcase}}");
+            }
             String applicationName = apiConfig.containsKey("applicationName") ? (String) apiConfig.get("applicationName") : null;
             String personalAccessToken = (String)apiConfig.get("accessToken");
 
