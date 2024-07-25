@@ -15,6 +15,7 @@ export PROJECT_NAME := `echo ${PROJECT_NAME:-lusid}`
 export PACKAGE_VERSION := `echo ${PACKAGE_VERSION:-2.9999.0}`
 export META_REQUEST_ID_HEADER_KEY := `echo ${META_REQUEST_ID_HEADER_KEY:-lusid-meta-requestid}`
 export JAVA_PACKAGE_LOCATION := `echo ${JAVA_PACKAGE_LOCATION:-~/.java/maven/local-packages}`
+export JAVA_OPTS := `echo ${JAVA_OPTS:--Dlog.level=error -Xmx4g}`
 
 # needed for tests
 export FBN_ACCESS_TOKEN := `echo ${FBN_ACCESS_TOKEN:-access-token}`
@@ -36,11 +37,17 @@ get-swagger:
 build-docker-images: 
     docker build -t lusid-sdk-gen-java:latest --ssh default=$SSH_AUTH_SOCK -f Dockerfile .
 
+generate-templates:
+    docker run \
+        -v {{justfile_directory()}}/.templates:/usr/src/templates \
+        finbourne/lusid-sdk-gen-java:latest -- java -jar /opt/openapi-generator/modules/openapi-generator-cli/target/openapi-generator-cli.jar author template -g java -o /usr/src/templates
+
 generate-local:
     envsubst < generate/config-template.json > generate/.config.json
+    cp generate/templates/description.{{APPLICATION_NAME}}.mustache generate/templates/description.mustache
     rm -r generate/.output || true
     docker run --rm \
-        -e JAVA_OPTS="-Dlog.level=error" \
+        -e JAVA_OPTS="${JAVA_OPTS}" \
         -e APPLICATION_NAME=${APPLICATION_NAME} \
         -e META_REQUEST_ID_HEADER_KEY=${META_REQUEST_ID_HEADER_KEY} \
         -e PACKAGE_VERSION=${PACKAGE_VERSION} \
@@ -50,7 +57,11 @@ generate-local:
         -v {{justfile_directory()}}/generate/.openapi-generator-ignore:/usr/src/generate/.output/.openapi-generator-ignore \
         -v {{justfile_directory()}}/{{swagger_path}}:/tmp/swagger.json \
         lusid-sdk-gen-java:latest -- ./generate/generate.sh ./generate ./generate/.output /tmp/swagger.json .config.json
-    rm -f generate/.output/.openapi-generator-ignore
+    rm -f generate/.output/.openapi-generator-ignore || true
+    rm generate/templates/description.mustache
+
+    # split the README into two, and move one up a level
+    bash generate/split-readme.sh
 
 move-for-testing-local:
     cp -R {{justfile_directory()}}/test_sdk/src/test/ {{justfile_directory()}}/generate/.output/sdk/src/test
@@ -81,14 +92,14 @@ move-for-testing GENERATED_DIR:
 test-local:
     @just generate-local
     @just move-for-testing-local
-    echo "{\"api\":{\"personalAccessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"apiUrl\":\"NOT_USED\"}}" > generate/.output/sdk/secrets.json
+    echo "{\"api\":{\"personalAccessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"${APPLICATION_NAME}Url\":\"NOT_USED\"}}" > generate/.output/sdk/secrets.json
     cp generate/.output/sdk/secrets.json generate/.output/sdk/secrets-pat.json
     mvn -f generate/.output/sdk verify
 
 # to be run after $(just generate-cicd {{GENERATED_DIR}})
 test-cicd GENERATED_DIR:
     @just move-for-testing {{GENERATED_DIR}}
-    echo "{\"api\":{\"personalAccessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"apiUrl\":\"NOT_USED\"}}" > .test_temp/sdk/secrets.json
+    echo "{\"api\":{\"personalAccessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"${APPLICATION_NAME}Url\":\"NOT_USED\"}}" > .test_temp/sdk/secrets.json
     cp .test_temp/sdk/secrets.json .test_temp/sdk/secrets-pat.json
     mvn -f .test_temp/sdk test
 
@@ -115,9 +126,14 @@ generate-cicd TARGET_DIR:
     mkdir -p ./generate/.output
     envsubst < generate/config-template.json > generate/.config.json
     cp ./generate/.openapi-generator-ignore ./generate/.output/.openapi-generator-ignore
+    cp ./generate/templates/description.{{APPLICATION_NAME}}.mustache ./generate/templates/description.mustache
+    
 
     ./generate/generate.sh ./generate ./generate/.output {{swagger_path}} .config.json
     rm -f generate/.output/.openapi-generator-ignore
+
+    # split the README into two, and move one up a level
+    bash generate/split-readme.sh
 
     # need to remove the created content before copying over the top of it.
     # this prevents deleted content from hanging around indefinitely.
