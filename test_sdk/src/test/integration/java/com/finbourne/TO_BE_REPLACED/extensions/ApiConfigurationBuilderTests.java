@@ -1,154 +1,415 @@
 package com.finbourne.TO_BE_REPLACED.extensions;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfiguration;
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationBuilder;
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationException;
+import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationBuilder.ConfigurationWithErrors;
 
-import static com.finbourne.TO_BE_REPLACED.extensions.TestContants.DUMMY_CREDENTIALS_FILE;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+
+import static com.finbourne.TO_BE_REPLACED.extensions.TestContants.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Collection;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+@ExtendWith(SystemStubsExtension.class)
 public class ApiConfigurationBuilderTests {
 
-    ApiConfigurationBuilder apiConfigurationBuilder;
+    final static String TOKEN_URL = "https://some-non-existing-test-instance.doesnotexist.com/oauth2/doesnotexist/v1/token";
+    final static String USERNAME = "user";
+    final static String PASSWORD = "pass";
+    final static String CLIENT_ID = "client-id";
+    final static String CLIENT_SECRET = "secret";
+    final static String ACCESS_TOKEN = "pat-token";
+    final static String API_URL = "https://some-non-existing-test-instance.lusid.com/api";
+    final static String APP_NAME = "non-existent";
+    final static int TIMEOUT_MS = 30000;
+    final static String PROXY_ADDRESS = "https://proxy";
+    final static int PROXY_PORT = 1234;
+    final static String PROXY_USERNAME = "proxy-username";
+    final static String PROXY_PASSWORD = "proxy-password";
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    @SystemStub
+    private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Before
-    public void setUp() {
-        apiConfigurationBuilder = spy(new ApiConfigurationBuilder());
+    @BeforeEach
+    public void SetUp() throws Exception {
+        environmentVariables.setup();
+    }
+
+    @AfterEach
+    public void TearDown() throws Exception {
+        environmentVariables.teardown();
     }
 
     @Test
-    public void build_WithUnsetEnvironmentVariables_ShouldGetFromFile() throws ApiConfigurationException {
-        doReturn(emptyConfigFromEnvVariables()).when(apiConfigurationBuilder)
-                .getApiConfigurationFromEnvironmentVariables();
+    public void correctApiConfigurationBuiltFromEnvVars() {
+        // arrange
+        environmentVariables
+            .set("FBN_TOKEN_URL", TOKEN_URL)
+            .set("FBN_USERNAME", USERNAME)
+            .set("FBN_PASSWORD", PASSWORD)
+            .set("FBN_CLIENT_ID", CLIENT_ID)
+            .set("FBN_CLIENT_SECRET", CLIENT_SECRET)
+            .set("FBN_ACCESS_TOKEN", ACCESS_TOKEN)
+            .set("FBN_TO_BE_REPLACED_UPPER_SNAKECASE_URL", API_URL)
+            .set("FBN_APP_NAME", APP_NAME)
+            .set("FBN_TIMEOUT_MS", String.valueOf(TIMEOUT_MS))
+            .set("FBN_PROXY_ADDRESS", PROXY_ADDRESS)
+            .set("FBN_PROXY_PORT", String.valueOf(PROXY_PORT))
+            .set("FBN_PROXY_USERNAME", PROXY_USERNAME)
+            .set("FBN_PROXY_PASSWORD", PROXY_PASSWORD);
 
-        ApiConfiguration apiConfiguration = apiConfigurationBuilder.build(DUMMY_CREDENTIALS_FILE);
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
 
-        assertThat(apiConfiguration.getApiUrl(), equalTo("https://some-non-existing-test-instance.lusid.com/api"));
-        assertThat(apiConfiguration.getTokenUrl(),
-                equalTo("https://some-non-existing-test-instance.doesnotexist.com/oauth2/doesnotexist/v1/token"));
-        assertThat(apiConfiguration.getClientId(), equalTo("client-id"));
-        assertThat(apiConfiguration.getClientSecret(), equalTo("secret"));
-        assertThat(apiConfiguration.getUsername(), equalTo("user"));
-        assertThat(apiConfiguration.getPassword(), equalTo("pass"));
-        assertThat(apiConfiguration.getApplicationName(), equalTo("non-existent"));
-        assertThat(apiConfiguration.getPersonalAccessToken(), equalTo("pat-token"));
+        // act
+        ConfigurationWithErrors configurationWithErrors = apiConfigurationBuilder.getApiConfigurationFromEnvironmentVariables();
+
+        // assert
+        verify_correctApiConfiguration(configurationWithErrors);
     }
 
     @Test
-    public void build_WithSetEnvironmentVariables_ShouldGetFromEnvironmentVariables() throws ApiConfigurationException {
-        doReturn(validConfigFromEnvVariables()).when(apiConfigurationBuilder)
-                .getApiConfigurationFromEnvironmentVariables();
+    public void correctApiConfigurationBuiltFromFile() throws ApiConfigurationException {
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
 
-        ApiConfiguration apiConfiguration = apiConfigurationBuilder.build("does_not_matter");
+        // act
+        ConfigurationWithErrors configurationWithErrors = apiConfigurationBuilder.getApiConfigurationFromFile(DUMMY_CREDENTIALS_FILE);
 
-        assertThat(apiConfiguration.getApiUrl(), equalTo("https://some-non-existing-test-instance.lusid.com/api"));
-        assertThat(apiConfiguration.getTokenUrl(),
-                equalTo("https://some-non-existing-test-instance.doesnotexist.com/oauth2/doesnotexist/v1/token"));
-        assertThat(apiConfiguration.getClientId(), equalTo("client-id-from-env"));
-        assertThat(apiConfiguration.getClientSecret(), equalTo("secret-from-env"));
-        assertThat(apiConfiguration.getUsername(), equalTo("user"));
-        assertThat(apiConfiguration.getPassword(), equalTo("pass"));
-        assertThat(apiConfiguration.getApplicationName(), equalTo("non-existent"));
-        assertThat(apiConfiguration.getPersonalAccessToken(), equalTo("pat-token"));
+        // assert
+        verify_correctApiConfiguration(configurationWithErrors);
+    }
+
+    private void verify_correctApiConfiguration(ConfigurationWithErrors configurationWithErrors) {
+        assertThat((Collection<String>)configurationWithErrors.errors, is(empty()));
+        ApiConfiguration apiConfiguration = configurationWithErrors.configuration;
+        assertThat(apiConfiguration.getTokenUrl(), equalTo(TOKEN_URL));
+        assertThat(apiConfiguration.getUsername(), equalTo(USERNAME));
+        assertThat(apiConfiguration.getPassword(), equalTo(PASSWORD));
+        assertThat(apiConfiguration.getClientId(), equalTo(CLIENT_ID));
+        assertThat(apiConfiguration.getClientSecret(), equalTo(CLIENT_SECRET));
+        assertThat(apiConfiguration.getPersonalAccessToken(), equalTo(ACCESS_TOKEN));
+        assertThat(apiConfiguration.getApiUrl(), equalTo(API_URL));
+        assertThat(apiConfiguration.getApplicationName(), equalTo(APP_NAME));
+        assertThat(apiConfiguration.getTimeoutMs(), equalTo(TIMEOUT_MS));
+        assertThat(apiConfiguration.getProxyAddress(), equalTo(PROXY_ADDRESS));
+        assertThat(apiConfiguration.getProxyPort(), equalTo(PROXY_PORT));
+        assertThat(apiConfiguration.getProxyUsername(), equalTo(PROXY_USERNAME));
+        assertThat(apiConfiguration.getProxyPassword(), equalTo(PROXY_PASSWORD));
     }
 
     @Test
     public void build_OnNonExistingConfigurationFile_ShouldThrowException() throws ApiConfigurationException {
-        doReturn(emptyConfigFromEnvVariables()).when(apiConfigurationBuilder)
-                .getApiConfigurationFromEnvironmentVariables();
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
 
-        thrown.expect(ApiConfigurationException.class);
-        apiConfigurationBuilder.build("does not exist");
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.getApiConfigurationFromFile("does-not-exist.json");
+        });
+
+        // assert
+        assertThat(
+            exception.getMessage(), 
+            containsString("Error when loading details from configuration file: Cannot find 'does-not-exist.json' in either classpath resources or as an absolute path"));
     }
 
     @Test
-    public void build_With_PAT_And_Url_Returns_Valid_ApiConfiguration() throws ApiConfigurationException {
-        ApiConfiguration mockConfiguration = new ApiConfiguration(null, null, null, null, null,
-                "https://example.lusid.com", null, "pat-token", null, null, null, null);
+    public void shortLivedAuthConfigAndUrlOnly_fromEnvironmentVariables_isValid() {
+        // arrange
+        environmentVariables
+            .set("FBN_TOKEN_URL", TOKEN_URL)
+            .set("FBN_USERNAME", USERNAME)
+            .set("FBN_PASSWORD", PASSWORD)
+            .set("FBN_CLIENT_ID", CLIENT_ID)
+            .set("FBN_CLIENT_SECRET", CLIENT_SECRET)
+            .set("FBN_TO_BE_REPLACED_UPPER_SNAKECASE_URL", API_URL);
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
 
-        doReturn(mockConfiguration).when(apiConfigurationBuilder).getApiConfigurationFromEnvironmentVariables();
+        // act
+        ConfigurationWithErrors configurationWithErrors = apiConfigurationBuilder.getApiConfigurationFromEnvironmentVariables();
 
-        ApiConfiguration apiConfiguration = apiConfigurationBuilder.build();
-
-        assertThat(apiConfiguration.getApiUrl(), equalTo(apiConfiguration.getApiUrl()));
-        assertThat(apiConfiguration.getPersonalAccessToken(), equalTo(apiConfiguration.getPersonalAccessToken()));
+        // assert
+        verify_shortLivedAuthConfigAndUrlOnly_isValid(configurationWithErrors);
     }
 
     @Test
-    public void isValidApiConfiguration_With_Valid_Configuration() throws ApiConfigurationException {
-        assertThat(apiConfigurationBuilder.isValidApiConfiguration(validConfigFromEnvVariables()), equalTo(true));
+    public void shortLivedAuthConfigAndUrlOnly_fromFile_isValid() throws ApiConfigurationException {
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        ConfigurationWithErrors configurationWithErrors = apiConfigurationBuilder.getApiConfigurationFromFile(DUMMY_CREDENTIALS_FILE_SHORT_LIVED_AUTH);
+
+        // assert
+        verify_shortLivedAuthConfigAndUrlOnly_isValid(configurationWithErrors);
+    }
+
+    private void verify_shortLivedAuthConfigAndUrlOnly_isValid(ConfigurationWithErrors configurationWithErrors) {
+        // assert no errors
+        assertThat((Collection<String>)configurationWithErrors.errors, is(empty()));
+        ApiConfiguration apiConfiguration = configurationWithErrors.configuration;
+
+        // check that specified config has been correctly set
+        assertThat(apiConfiguration.getTokenUrl(), equalTo(TOKEN_URL));
+        assertThat(apiConfiguration.getUsername(), equalTo(USERNAME));
+        assertThat(apiConfiguration.getPassword(), equalTo(PASSWORD));
+        assertThat(apiConfiguration.getClientId(), equalTo(CLIENT_ID));
+        assertThat(apiConfiguration.getClientSecret(), equalTo(CLIENT_SECRET));
+        assertThat(apiConfiguration.getApiUrl(), equalTo(API_URL));
+
+        // check that non specified config is at default value
+        assertThat(apiConfiguration.getPersonalAccessToken(), equalTo(null));
+        assertThat(apiConfiguration.getApplicationName(), equalTo(null));
+        assertThat(apiConfiguration.getTimeoutMs(), equalTo(ApiConfigurationBuilder.DEFAULT_TIMEOUT_MS));
+        assertThat(apiConfiguration.getProxyAddress(), equalTo(null));
+        assertThat(apiConfiguration.getProxyPort(), equalTo(-1));
+        assertThat(apiConfiguration.getProxyUsername(), equalTo(null));
+        assertThat(apiConfiguration.getProxyPassword(), equalTo(null));
     }
 
     @Test
-    public void isValidApiConfiguration_With_Valid_Configuration_Using_Resource_Owner_Flow_No_Pat()
-            throws ApiConfigurationException {
+    public void longLivedAuthConfigAndUrlOnly_fromEnvironmentVariables_isValid() {
+        // arrange
+        environmentVariables
+            .set("FBN_ACCESS_TOKEN", ACCESS_TOKEN)
+            .set("FBN_TO_BE_REPLACED_UPPER_SNAKECASE_URL", API_URL);
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
 
-        ApiConfiguration apiConfiguration = new ApiConfiguration(
-                "https://some-non-existing-test-instance.doesnotexist.com/oauth2/doesnotexist/v1/token",
-                "user", "pass", "client-id-from-env", "secret-from-env",
-                "https://some-non-existing-test-instance.lusid.com/api", "non-existent",
-                null, null, null, null, null);
+        // act
+        ConfigurationWithErrors configurationWithErrors = apiConfigurationBuilder.getApiConfigurationFromEnvironmentVariables();
 
-        assertThat(apiConfigurationBuilder.isValidApiConfiguration(validConfigFromEnvVariables()), equalTo(true));
+        // assert
+        verify_longLivedAuthConfigAndUrlOnly_isValid(configurationWithErrors);
     }
 
     @Test
-    public void isValidApiConfiguration_With_Valid_Configuration_Using_Pat_No_Resource_Owner_Flow()
-            throws ApiConfigurationException {
+    public void longLivedAuthConfigAndUrlOnly_fromFile_isValid() throws ApiConfigurationException {
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
 
-        ApiConfiguration apiConfiguration = new ApiConfiguration(
-                null, null, null, null, null,
-                "https://some-non-existing-test-instance.lusid.com/api", "non-existent",
-                "pat-token", null, null, null, null);
+        // act
+        ConfigurationWithErrors configurationWithErrors = apiConfigurationBuilder.getApiConfigurationFromFile(DUMMY_CREDENTIALS_FILE_LONG_LIVED_AUTH);
 
-        assertThat(apiConfigurationBuilder.isValidApiConfiguration(validConfigFromEnvVariables()), equalTo(true));
+        // assert
+        verify_longLivedAuthConfigAndUrlOnly_isValid(configurationWithErrors);
+    }
+
+    private void verify_longLivedAuthConfigAndUrlOnly_isValid(ConfigurationWithErrors configurationWithErrors) {
+        // assert no errors
+        assertThat((Collection<String>)configurationWithErrors.errors, is(empty()));
+        ApiConfiguration apiConfiguration = configurationWithErrors.configuration;
+
+        // check that specified config has been correctly set
+        assertThat(apiConfiguration.getPersonalAccessToken(), equalTo(ACCESS_TOKEN));
+        assertThat(apiConfiguration.getApiUrl(), equalTo(API_URL));
+
+        // check that non specified config is at default value
+        assertThat(apiConfiguration.getTokenUrl(), equalTo(null));
+        assertThat(apiConfiguration.getUsername(), equalTo(null));
+        assertThat(apiConfiguration.getPassword(), equalTo(null));
+        assertThat(apiConfiguration.getClientId(), equalTo(null));
+        assertThat(apiConfiguration.getClientSecret(), equalTo(null));
+        assertThat(apiConfiguration.getApplicationName(), equalTo(null));
+        assertThat(apiConfiguration.getTimeoutMs(), equalTo(ApiConfigurationBuilder.DEFAULT_TIMEOUT_MS));
+        assertThat(apiConfiguration.getProxyAddress(), equalTo(null));
+        assertThat(apiConfiguration.getProxyPort(), equalTo(-1));
+        assertThat(apiConfiguration.getProxyUsername(), equalTo(null));
+        assertThat(apiConfiguration.getProxyPassword(), equalTo(null));
     }
 
     @Test
-    public void isValidApiConfiguration_With_InValid_Resource_Owner_Flow_Configuration_Returns_Not_Valid()
-            throws ApiConfigurationException {
+    public void whenNoRequiredConfig_inEnvVars_returnsRelevantErrors() throws ApiConfigurationException {
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
 
-        // missing required username
-        ApiConfiguration apiConfiguration = new ApiConfiguration(
-                "https://some-non-existing-test-instance.doesnotexist.com/oauth2/doesnotexist/v1/token",
-                null, "pass", "client-id-from-env", "secret-from-env",
-                "https://some-non-existing-test-instance.lusid.com/api", "non-existent",
-                null, null, null, null, null);
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.build();
+        });
 
-        assertThat(apiConfigurationBuilder.isValidApiConfiguration(apiConfiguration), equalTo(false));
+        // assert
+        String expectedMessage = "Configuration parameters are not valid. The following issues were detected with the environment variables set: 'FBN_TOKEN_URL' was not set; 'FBN_USERNAME' was not set; 'FBN_PASSWORD' was not set; 'FBN_CLIENT_ID' was not set; 'FBN_CLIENT_SECRET' was not set; 'FBN_TO_BE_REPLACED_UPPER_SNAKECASE_URL' was not set. You may also use the String overload of this method to provide configuration via a configuration file.";
+
+        assertThat(
+            exception.getMessage(), 
+            equalTo(expectedMessage));
     }
 
     @Test
-    public void isValidApiConfiguration_With_InValid_Pat_Configuration_Returns_Not_Valid()
-            throws ApiConfigurationException {
+    public void whenFileDoesNotContainApiSection_returnsRelevantError() throws ApiConfigurationException {
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
 
-        // missing PAT
-        ApiConfiguration apiConfiguration = new ApiConfiguration(
-                null, null, null, null, null,
-                "https://some-non-existing-test-instance.lusid.com/api", "non-existent",
-                null, null, null, null, null);
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.build(DUMMY_CREDENTIALS_FILE_EMPTY);
+        });
 
-        assertThat(apiConfigurationBuilder.isValidApiConfiguration(apiConfiguration), equalTo(false));
+        // assert
+        assertThat(
+            exception.getMessage(), 
+            containsString("The following issues were detected with the secrets file: configuration is missing required 'api' section"));
     }
 
-    ApiConfiguration emptyConfigFromEnvVariables() {
-        return new ApiConfiguration(null, null, null, null, null, null, null, null, null, null, null, null);
+    @Test
+    public void whenNoRequiredConfig_inEnvVarsOrFile_returnsRelevantErrors() throws ApiConfigurationException {
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.build(DUMMY_CREDENTIALS_FILE_API_SECTION_EMPTY);
+        });
+
+        // assert
+        String expectedMessage = "Configuration parameters are not valid. Either all required environment variables must be set or else the configuration file 'dummy_credentials_api_section_empty.json' must contain all required configuration. The following issues were detected with the environment variables set: 'FBN_TOKEN_URL' was not set; 'FBN_USERNAME' was not set; 'FBN_PASSWORD' was not set; 'FBN_CLIENT_ID' was not set; 'FBN_CLIENT_SECRET' was not set; 'FBN_TO_BE_REPLACED_UPPER_SNAKECASE_URL' was not set. The following issues were detected with the secrets file: 'api.tokenUrl' was not set; 'api.username' was not set; 'api.password' was not set; 'api.clientId' was not set; 'api.clientSecret' was not set; 'api.TO_BE_REPLACEDUrl' was not set";
+
+        assertThat(
+            exception.getMessage(), 
+            equalTo(expectedMessage));
     }
 
-    ApiConfiguration validConfigFromEnvVariables() {
-        return new ApiConfiguration(
-                "https://some-non-existing-test-instance.doesnotexist.com/oauth2/doesnotexist/v1/token", "user", "pass",
-                "client-id-from-env", "secret-from-env", "https://some-non-existing-test-instance.lusid.com/api",
-                "non-existent", "pat-token", null, null, null, null);
+    @Test
+    public void nonNumericTimeoutInEnvVar_reportedAsError() {
+        // arrange
+        environmentVariables
+            .set("FBN_ACCESS_TOKEN", ACCESS_TOKEN)
+            .set("FBN_TO_BE_REPLACED_UPPER_SNAKECASE_URL", API_URL)
+            .set("FBN_TIMEOUT_MS", "30s");
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.build();
+        });
+
+        // assert
+        assertThat(
+            exception.getMessage(), 
+            containsString("'FBN_TIMEOUT_MS' is not a valid integer"));
+    }
+
+    @Test
+    public void nonNumericTimeoutInFile_reportedAsError() {
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.build(DUMMY_CREDENTIALS_FILE_NON_NUMERIC_TIMEOUT);
+        });
+
+        // assert
+        assertThat(
+            exception.getMessage(), 
+            containsString("'api.timeoutMs' is not a valid integer"));
+    }
+
+    @Test
+    public void nonIntegerTimeoutInEnvVar_reportedAsError() {
+        // arrange
+        environmentVariables
+            .set("FBN_ACCESS_TOKEN", ACCESS_TOKEN)
+            .set("FBN_TO_BE_REPLACED_UPPER_SNAKECASE_URL", API_URL)
+            .set("FBN_TIMEOUT_MS", "30.5");
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.build();
+        });
+
+        // assert
+        assertThat(
+            exception.getMessage(), 
+            containsString("'FBN_TIMEOUT_MS' is not a valid integer"));
+    }
+
+    @Test
+    public void nonIntegerTimeoutInFile_reportedAsError() {
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.build(DUMMY_CREDENTIALS_FILE_NON_INTEGER_TIMEOUT);
+        });
+
+        // assert
+        assertThat(
+            exception.getMessage(), 
+            containsString("'api.timeoutMs' is not a valid integer"));
+    }
+
+    @Test
+    public void nonPositiveTimeoutInEnvVar_reportedAsError() {
+        // arrange
+        environmentVariables
+            .set("FBN_ACCESS_TOKEN", ACCESS_TOKEN)
+            .set("FBN_TO_BE_REPLACED_UPPER_SNAKECASE_URL", API_URL)
+            .set("FBN_TIMEOUT_MS", "-1");
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.build();
+        });
+
+        // assert
+        assertThat(
+            exception.getMessage(), 
+            containsString("'FBN_TIMEOUT_MS' must be a positive integer between 0 and 2147483647"));
+    }
+
+    @Test
+    public void nonPositiveTimeoutInFile_reportedAsError() {
+        // arrange
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        Exception exception = assertThrows(ApiConfigurationException.class, () -> {
+            apiConfigurationBuilder.build(DUMMY_CREDENTIALS_FILE_NON_POSITIVE_TIMEOUT);
+        });
+
+        // assert
+        assertThat(
+            exception.getMessage(), 
+            containsString("'api.timeoutMs' must be a positive integer between 0 and 2147483647"));
+    }
+
+    @Test
+    public void usesOldStyleApiUrl_inEnvVars() {
+        // arrange
+        environmentVariables
+            .set("FBN_ACCESS_TOKEN", ACCESS_TOKEN)
+            .set("FBN_TO_BE_REPLACED_UPPER_SNAKECASE_API_URL", API_URL);
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        ConfigurationWithErrors configurationWithErrors = apiConfigurationBuilder.getApiConfigurationFromEnvironmentVariables();
+
+        // assert
+        verify_longLivedAuthConfigAndUrlOnly_isValid(configurationWithErrors);
+    }
+
+    @Test
+    public void usesOldStyleApiUrl_inFile() throws ApiConfigurationException {
+        ApiConfigurationBuilder apiConfigurationBuilder = new ApiConfigurationBuilder();
+
+        // act
+        ConfigurationWithErrors configurationWithErrors = apiConfigurationBuilder.getApiConfigurationFromFile(DUMMY_CREDENTIALS_FILE_OLD_STYLE_API_URL);
+
+        // assert
+        verify_longLivedAuthConfigAndUrlOnly_isValid(configurationWithErrors);
     }
 }

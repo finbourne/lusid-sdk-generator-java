@@ -70,6 +70,8 @@ move-for-testing-local:
     # rename to match the application being tested
     mv {{justfile_directory()}}/generate/.output/sdk/src/test/integration/java/com/finbourne/TO_BE_REPLACED {{justfile_directory()}}/generate/.output/sdk/src/test/integration/java/com/finbourne/${PROJECT_NAME}
     mv {{justfile_directory()}}/generate/.output/sdk/src/test/unit/java/com/finbourne/TO_BE_REPLACED {{justfile_directory()}}/generate/.output/sdk/src/test/unit/java/com/finbourne/${PROJECT_NAME}
+    upper_case_placeholder="$(echo "$PROJECT_NAME" | tr '[a-z]' '[A-Z]')"; \
+        find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
     find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED/${PROJECT_NAME}/g" {} \;
 
     mv {{justfile_directory()}}/generate/.output/sdk/pom.dev.xml {{justfile_directory()}}/generate/.output/sdk/pom.xml
@@ -83,6 +85,8 @@ move-for-testing GENERATED_DIR:
     # rename to match the application being tested
     mv .test_temp/sdk/src/test/integration/java/com/finbourne/TO_BE_REPLACED .test_temp/sdk/src/test/integration/java/com/finbourne/${PLACEHOLDER_VALUE_FOR_TESTS}
     mv .test_temp/sdk/src/test/unit/java/com/finbourne/TO_BE_REPLACED .test_temp/sdk/src/test/unit/java/com/finbourne/${PLACEHOLDER_VALUE_FOR_TESTS}
+    upper_case_placeholder="$(echo "$PLACEHOLDER_VALUE_FOR_TESTS" | tr '[a-z]' '[A-Z]')"; \
+        find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
     find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED/${PLACEHOLDER_VALUE_FOR_TESTS}/g" {} \;
 
     # use the pom.dev.xml file

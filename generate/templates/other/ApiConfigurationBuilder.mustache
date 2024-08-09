@@ -5,8 +5,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class ApiConfigurationBuilder {
+
+    public class ConfigurationWithErrors {
+        public ConfigurationWithErrors(ApiConfiguration configuration, ArrayList<String> errors) {
+            this.errors = errors;
+            if (this.errors.isEmpty()) {
+                this.configuration = configuration;
+            }
+        }
+        ApiConfiguration configuration;
+        ArrayList<String> errors;
+    }
+
+    // The default timeout is 30 minutes
+    public static final int DEFAULT_TIMEOUT_MS = 1800000;
 
     /**
      * Build an {@link ApiConfiguration}. Attempts to build a valid configuration
@@ -16,7 +31,15 @@ public class ApiConfigurationBuilder {
      * @throws ApiConfigurationException
      */
     public ApiConfiguration build() throws ApiConfigurationException {
-        return this.build(null);
+        ConfigurationWithErrors apiConfigWithErrorsEnvVars = getApiConfigurationFromEnvironmentVariables();
+
+        if (apiConfigWithErrorsEnvVars.errors.isEmpty()) {
+            return apiConfigWithErrorsEnvVars.configuration;
+        }
+
+        throw new ApiConfigurationException(
+            "Configuration parameters are not valid. The following issues were detected with the environment variables set: " + 
+            String.join("; ", apiConfigWithErrorsEnvVars.errors) + ". You may also use the String overload of this method to provide configuration via a configuration file.");
     }
 
     /**
@@ -30,76 +53,151 @@ public class ApiConfigurationBuilder {
     */
     public ApiConfiguration build(String apiSecretsFilename) throws ApiConfigurationException {
 
-        ApiConfiguration apiConfiguration = getApiConfigurationFromEnvironmentVariables();
+        ConfigurationWithErrors apiConfigWithErrorsEnvVars = getApiConfigurationFromEnvironmentVariables();
 
-        if (isValidApiConfiguration(apiConfiguration)) {
-            return apiConfiguration;
+        if (apiConfigWithErrorsEnvVars.errors.isEmpty()) {
+            return apiConfigWithErrorsEnvVars.configuration;
         }
 
-        apiConfiguration = getApiConfigurationFromFile(apiSecretsFilename);
+        ConfigurationWithErrors apiConfigWithErrorsFile = getApiConfigurationFromFile(apiSecretsFilename);
 
-        if (!isValidApiConfiguration(apiConfiguration)) {
-            throw new ApiConfigurationException("ApiConfiguration parameters are not valid. Ensure the configuration file " + apiSecretsFilename +
-                    " is correctly setup.");
+        if (apiConfigWithErrorsFile.errors.isEmpty()) {
+            return apiConfigWithErrorsFile.configuration;
         }
 
-        return apiConfiguration;
+        throw new ApiConfigurationException(
+            "Configuration parameters are not valid. Either all required environment variables must be set or else the configuration file '" +
+            apiSecretsFilename + "' must contain all required configuration. The following issues were detected with the environment variables set: " + 
+            String.join("; ", apiConfigWithErrorsEnvVars.errors) + ". The following issues were detected with the secrets file: " + String.join("; ", apiConfigWithErrorsFile.errors));
     }
 
-    ApiConfiguration getApiConfigurationFromEnvironmentVariables(){
-        //  firstly try and get the values from environment variables
-        String tokenUrl = System.getenv("FBN_TOKEN_URL");
-        String username = System.getenv("FBN_USERNAME");
-        String password = System.getenv("FBN_PASSWORD");
-        String clientId = System.getenv("FBN_CLIENT_ID");
-        String clientSecret = System.getenv("FBN_CLIENT_SECRET");
-        String apiUrl = System.getenv("FBN_{{#lambda.uppercase}}{{#lambda.snakecase}}{{application}}{{/lambda.snakecase}}{{/lambda.uppercase}}_URL");
-        if (apiUrl == null) {
-            apiUrl = System.getenv("FBN_{{#lambda.uppercase}}{{application}}{{/lambda.uppercase}}_API_URL");
+    public ConfigurationWithErrors getApiConfigurationFromEnvironmentVariables(){
+        ArrayList<String> errors = new ArrayList<String>();
+        
+        // check all auth config exists
+        ArrayList<String> authConfig1Errors = new ArrayList<String>();
+        String tokenUrl = getRequiredValueFromEnvironmentVariable(new String[]{"FBN_TOKEN_URL"}, authConfig1Errors);
+        String username = getRequiredValueFromEnvironmentVariable(new String[]{"FBN_USERNAME"}, authConfig1Errors);
+        String password = getRequiredValueFromEnvironmentVariable(new String[]{"FBN_PASSWORD"}, authConfig1Errors);
+        String clientId = getRequiredValueFromEnvironmentVariable(new String[]{"FBN_CLIENT_ID"}, authConfig1Errors);
+        String clientSecret = getRequiredValueFromEnvironmentVariable(new String[]{"FBN_CLIENT_SECRET"}, authConfig1Errors);
+
+        ArrayList<String> authConfig2Errors = new ArrayList<String>();
+        String personalAccessToken = getRequiredValueFromEnvironmentVariable(new String[]{"FBN_ACCESS_TOKEN"}, authConfig2Errors);
+
+        if (!authConfig1Errors.isEmpty() && !authConfig2Errors.isEmpty()) {
+            errors.addAll(authConfig1Errors);
         }
-        String personalAccessToken = System.getenv("FBN_ACCESS_TOKEN");
 
-        //  optional variables
+        // check api url config exists
+        String[] apiUrlConfigNames = {
+            "FBN_{{#lambda.uppercase}}{{#lambda.snakecase}}{{application}}{{/lambda.snakecase}}{{/lambda.uppercase}}_URL",
+            "FBN_{{#lambda.uppercase}}{{application}}{{/lambda.uppercase}}_API_URL"
+        };
+        String apiUrl = getRequiredValueFromEnvironmentVariable(apiUrlConfigNames, errors);
+
+        // optional config
         String applicationName = System.getenv("FBN_APP_NAME");
+        String timeoutMsString = System.getenv("FBN_TIMEOUT_MS");
+        int timeoutMs = DEFAULT_TIMEOUT_MS;
+        if (timeoutMsString != null) {
+            try {
+                timeoutMs = Integer.parseInt(timeoutMsString);
+                if (timeoutMs < 0) {
+                    errors.add("'FBN_TIMEOUT_MS' must be a positive integer between 0 and " + Integer.MAX_VALUE);
+                }
+            } catch (NumberFormatException e) {
+                errors.add("'FBN_TIMEOUT_MS' is not a valid integer");
+            }
+        }
+        
+        // proxy configuration
         String proxyAddress = System.getenv("FBN_PROXY_ADDRESS");
-
-        String portStr = System.getenv("FBN_PROXY_PORT");
-        Integer proxyPort = portStr == null ? -1 : Integer.parseInt(portStr);
+        String portString = System.getenv("FBN_PROXY_PORT");
+        int proxyPort = -1;
+        if (portString != null) {
+            try {
+                proxyPort = Integer.parseInt(portString);
+            } catch (NumberFormatException e) {
+                errors.add("'FBN_PROXY_PORT' is not a valid integer");
+            }
+        }
         String proxyUsername = System.getenv("FBN_PROXY_USERNAME");
         String proxyPassword = System.getenv("FBN_PROXY_PASSWORD");
+        
+        // return the configuration if no errors
+        if (errors.isEmpty()) {
+            ApiConfiguration configuration = new ApiConfiguration(tokenUrl, username, password, clientId, clientSecret, apiUrl, applicationName,
+                personalAccessToken, proxyAddress, proxyPort, proxyUsername, proxyPassword, timeoutMs);
+            return new ConfigurationWithErrors(configuration, errors);
+        }
 
-        return new ApiConfiguration(tokenUrl, username, password, clientId, clientSecret, apiUrl, applicationName,
-                personalAccessToken, proxyAddress, proxyPort, proxyUsername, proxyPassword);
+        // else return the errors
+        return new ConfigurationWithErrors(null, errors);
     }
 
-    ApiConfiguration getApiConfigurationFromFile(String apiSecretsFilename) throws ApiConfigurationException {
+    public ConfigurationWithErrors getApiConfigurationFromFile(String apiSecretsFilename) throws ApiConfigurationException {
         try {
             File configJson = getFileConfigurationLoader().loadConfiguration(apiSecretsFilename);
 
-            //  load configuration from secrets.json if any of the environment variables are missing
             ObjectMapper configMapper = new ObjectMapper();
-            Map apiConfigValues = configMapper.readValue(configJson, Map.class);
-            Map apiConfig = (Map) apiConfigValues.get("api");
+            Map config = configMapper.readValue(configJson, Map.class);
 
-            String tokenUrl = (String) apiConfig.get("tokenUrl");
-            String username = (String) apiConfig.get("username");
-            String password = (String) apiConfig.get("password");
-            String clientId = (String) apiConfig.get("clientId");
-            String clientSecret = (String) apiConfig.get("clientSecret");
-            String apiUrl = (String) apiConfig.get("{{#lambda.camelcase}}{{application}}Url{{/lambda.camelcase}}");
-            if (apiUrl == null) {
-                apiUrl = (String) apiConfig.get("{{#lambda.camelcase}}{{^isLusidPackage}}{{packageName}}{{/isLusidPackage}}apiUrl{{/lambda.camelcase}}");
+            ArrayList<String> errors = new ArrayList<String>();
+
+            // check contains the 'api' section
+            if (!config.containsKey("api")) {
+                errors.add("configuration is missing required 'api' section");
+                return new ConfigurationWithErrors(null, errors);
             }
-            String applicationName = apiConfig.containsKey("applicationName") ? (String) apiConfig.get("applicationName") : null;
-            String personalAccessToken = (String)apiConfig.get("accessToken");
+            
+            // check all auth config exists
+            ArrayList<String> authConfig1Errors = new ArrayList<String>();
+            String tokenUrl = getRequiredValueFromFile(new String[]{"tokenUrl"}, config, "api", authConfig1Errors);
+            String username = getRequiredValueFromFile(new String[]{"username"}, config, "api", authConfig1Errors);
+            String password = getRequiredValueFromFile(new String[]{"password"}, config, "api", authConfig1Errors);
+            String clientId = getRequiredValueFromFile(new String[]{"clientId"}, config, "api", authConfig1Errors);
+            String clientSecret = getRequiredValueFromFile(new String[]{"clientSecret"}, config, "api", authConfig1Errors);
+            
+            ArrayList<String> authConfig2Errors = new ArrayList<String>();
+            String personalAccessToken = getRequiredValueFromFile(new String[]{"accessToken"}, config, "api", authConfig2Errors);
 
+            if (!authConfig1Errors.isEmpty() && !authConfig2Errors.isEmpty()) {
+                errors.addAll(authConfig1Errors);
+            }
+            
+            // check api url config exists
+            String apiUrl = getRequiredValueFromFile(
+                new String[]{
+                    "{{#lambda.camelcase}}{{application}}Url{{/lambda.camelcase}}",
+                    "{{#lambda.camelcase}}{{^isLusidPackage}}{{packageName}}{{/isLusidPackage}}apiUrl{{/lambda.camelcase}}"
+                }, 
+                config, "api", errors);
+            
+            // optional config
+            Map apiConfig = (Map) config.get("api");
+            String applicationName = apiConfig.containsKey("applicationName") ? (String) apiConfig.get("applicationName") : null;
+            int timeoutMs = DEFAULT_TIMEOUT_MS;
+
+            if (apiConfig.containsKey("timeoutMs")) {
+                try {
+                    timeoutMs = (int) apiConfig.get("timeoutMs");
+                    if (timeoutMs < 0) {
+                        errors.add("'api.timeoutMs' must be a positive integer between 0 and " + Integer.MAX_VALUE);
+                    }
+                } catch (java.lang.ClassCastException e) {
+                    errors.add("'api.timeoutMs' is not a valid integer");
+                }
+            }
+
+            // proxy config
             String proxyAddress = null;
-            Integer proxyPort = null;
+            int proxyPort = -1;
             String proxyUsername = null;
             String proxyPassword = null;
 
-            if (apiConfigValues.containsKey("proxy")) {
-                Map proxyConfig = (Map) apiConfigValues.get("proxy");
+            if (config.containsKey("proxy")) {
+                Map proxyConfig = (Map) config.get("proxy");
 
                 proxyAddress = (String) proxyConfig.get("proxyAddress");
                 proxyPort = (Integer) proxyConfig.get("proxyPort");
@@ -107,28 +205,51 @@ public class ApiConfigurationBuilder {
                 proxyPassword = (String) proxyConfig.get("password");
             }
 
-        return new ApiConfiguration(tokenUrl, username, password, clientId, clientSecret, apiUrl, applicationName,
-                personalAccessToken, proxyAddress, proxyPort, proxyUsername, proxyPassword);
+            // return the configuration if no errors
+            if (errors.isEmpty()) {
+                ApiConfiguration configuration = new ApiConfiguration(tokenUrl, username, password, clientId, clientSecret, apiUrl, applicationName,
+                    personalAccessToken, proxyAddress, proxyPort, proxyUsername, proxyPassword, timeoutMs);
+                return new ConfigurationWithErrors(configuration, errors);
+            }
+
+            // else return the errors
+            return new ConfigurationWithErrors(null, errors);
         } catch (IOException e){
-            throw new ApiConfigurationException("Error when loading details from configuration file. See details : ", e);
+            throw new ApiConfigurationException("Error when loading details from configuration file: " + e.getMessage(), e);
         }
     }
 
-    public boolean isValidApiConfiguration(ApiConfiguration apiConfiguration) {
-        return (!(apiConfiguration.getTokenUrl() == null ||
-                apiConfiguration.getUsername() == null ||
-                apiConfiguration.getPassword() == null ||
-                apiConfiguration.getClientId() == null ||
-                apiConfiguration.getClientSecret() == null ||
-                apiConfiguration.getApiUrl() == null) ||
-                !(apiConfiguration.getApiUrl() == null ||
-                apiConfiguration.getPersonalAccessToken() == null));
+    String getRequiredValueFromEnvironmentVariable(String[] names, ArrayList<String> errors) {
+        String value = null;
+        for (String name: names) {
+            value = System.getenv(name);
+            if (value != null) {
+                break;
+            }
+        }
+        if (value == null) {
+            errors.add("'" + names[0] + "' was not set");
+        }
+        return value;
+    }
+
+    String getRequiredValueFromFile(String[] names, Map config, String configKey, ArrayList<String> errors) {
+        String value = null;
+        Map innerConfig = (Map) config.get(configKey);
+        for (String name: names) {
+            if (innerConfig.containsKey(name)) {
+                value = (String) innerConfig.get(name);
+                break;
+            }
+        }
+        if (value == null) {
+            errors.add("'" + configKey + "." + names[0] + "' was not set");
+        }
+        return value;
     }
 
     // getter used for mocking in tests
     FileConfigurationLoader getFileConfigurationLoader(){
         return new FileConfigurationLoader();
     }
-
-
 }

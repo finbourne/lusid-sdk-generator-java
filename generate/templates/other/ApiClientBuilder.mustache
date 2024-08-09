@@ -137,6 +137,9 @@ public class ApiClientBuilder {
         if (apiConfiguration.getApplicationName() != null) {
             defaultApiClient.addDefaultHeader("X-LUSID-Application", apiConfiguration.getApplicationName());
         }
+        int timeoutMs = apiConfiguration.getTimeoutMs();
+        defaultApiClient.setReadTimeout(timeoutMs);
+        defaultApiClient.setWriteTimeout(timeoutMs);
         defaultApiClient.setBasePath(apiConfiguration.getApiUrl());
         return defaultApiClient;
     }
