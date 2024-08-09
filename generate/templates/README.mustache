@@ -72,7 +72,7 @@ You'll need to provide some configuration to connect to the {{appName}} - see th
 ### Environment variables
 
 Required for a short-lived access token
-``` 
+```
 FBN_TOKEN_URL
 FBN_{{#lambda.uppercase}}{{#lambda.snakecase}}{{application}}{{/lambda.snakecase}}{{/lambda.uppercase}}_URL
 FBN_USERNAME
@@ -88,6 +88,14 @@ FBN_ACCESS_TOKEN
 ```
 
 You can send your requests to the {{appName}} via a proxy, by setting `FBN_PROXY_ADDRESS`. If your proxy has basic auth enabled, you must also set `FBN_PROXY_USERNAME` and `FBN_PROXY_PASSWORD`.
+
+Other optional configuration
+
+```bash
+# the sdk client timeout in milliseconds - the default is 1800000 (30 minutes)
+# a value of 0 means no timeout, otherwise values must be between 1 and 2147483647
+FBN_TIMEOUT_MS
+```
 
 ### Secrets file
 
@@ -133,6 +141,19 @@ You can send your requests to the {{appName}} via a proxy, by adding a proxy sec
         "address":"<your-proxy-address>",
         "username":"<your-proxy-username>",
         "password":"<your-proxy-password>"
+    }
+}
+```
+
+Other optional configuration
+
+```javascript
+{
+    "api": 
+    {
+        // the sdk client timeout in milliseconds - the default is 1800000 (30 minutes)
+        // a value of 0 means no timeout, otherwise values must be between 1 and 2147483647
+        "timeoutMs":"<timeout-in-ms>"
     }
 }
 ```

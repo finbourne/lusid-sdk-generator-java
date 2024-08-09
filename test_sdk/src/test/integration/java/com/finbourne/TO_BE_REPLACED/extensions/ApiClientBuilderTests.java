@@ -76,6 +76,7 @@ public class ApiClientBuilderTests {
                 "non-existent",
                 null,
                 // proxy strs
-                "", 8888, "", "");
+                "", 8888, "", "",
+                0);
     }
 }
