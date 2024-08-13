@@ -1,10 +1,11 @@
-package com.finbourne.TO_BE_REPLACED.extensions.auth;
+package com.finbourne.TO_BE_REPLACED.unit.extensions.auth;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.finbourne.TO_BE_REPLACED.extensions.*;
 import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneToken;
 import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneTokenException;
 import com.finbourne.TO_BE_REPLACED.extensions.auth.HttpFinbourneTokenProvider;

@@ -1,5 +1,6 @@
-package com.finbourne.TO_BE_REPLACED.extensions;
+package com.finbourne.TO_BE_REPLACED.unit.extensions;
 
+import com.finbourne.TO_BE_REPLACED.extensions.*;
 import com.finbourne.TO_BE_REPLACED.ApiCallback;
 import com.finbourne.TO_BE_REPLACED.ApiClient;
 import com.finbourne.TO_BE_REPLACED.ApiException;

@@ -1,4 +1,4 @@
-package com.finbourne.TO_BE_REPLACED.extensions;
+package com.finbourne.TO_BE_REPLACED.unit.extensions;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -17,6 +17,7 @@ import com.finbourne.TO_BE_REPLACED.ApiCallback;
 import com.finbourne.TO_BE_REPLACED.ApiClient;
 import com.finbourne.TO_BE_REPLACED.ApiException;
 import com.finbourne.TO_BE_REPLACED.ApiResponse;
+import com.finbourne.TO_BE_REPLACED.extensions.*;
 
 import okhttp3.Call;
 import okhttp3.OkHttpClient;

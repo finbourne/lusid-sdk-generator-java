@@ -42,11 +42,11 @@ public class FileConfigurationLoader {
     }
 
     // factory methods for test mocking purposes.
-    ClassLoader getClassLoader(){
+    public ClassLoader getClassLoader(){
         return getClass().getClassLoader();
     }
 
-    File getFile(String path){
+    public File getFile(String path){
         return new File(path);
     }
 

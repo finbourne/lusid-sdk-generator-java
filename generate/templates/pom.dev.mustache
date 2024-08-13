@@ -92,6 +92,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M7</version>
                 <configuration>
+                    <!-- exists to exclude unit tests when running integration tests -->
+                    <skipTests>${skip.unit-tests}</skipTests>
                     <systemProperties>
                         <property>
                             <name>loggerPath</name>
@@ -110,6 +112,21 @@
                         <version>${junit-version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <!-- Failsafe Plugin for Integration Tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.0.0-M7</version>
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
