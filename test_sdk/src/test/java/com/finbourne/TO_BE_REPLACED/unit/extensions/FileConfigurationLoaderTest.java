@@ -1,9 +1,9 @@
-package com.finbourne.TO_BE_REPLACED.extensions;
+package com.finbourne.TO_BE_REPLACED.unit.extensions;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.finbourne.TO_BE_REPLACED.extensions.FileConfigurationLoader;
+import com.finbourne.TO_BE_REPLACED.extensions.*;
 
 import java.io.File;
 import java.io.IOException;

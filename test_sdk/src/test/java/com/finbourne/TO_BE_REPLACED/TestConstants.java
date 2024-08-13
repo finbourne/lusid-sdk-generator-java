@@ -1,6 +1,6 @@
-package com.finbourne.TO_BE_REPLACED.extensions;
+package com.finbourne.TO_BE_REPLACED;
 
-public class TestContants {
+public class TestConstants {
 
     public final static String DUMMY_CREDENTIALS_FILE = "dummy_credentials.json";
     public final static String DUMMY_CREDENTIALS_FILE_SHORT_LIVED_AUTH = "dummy_credentials_short_lived_auth.json";

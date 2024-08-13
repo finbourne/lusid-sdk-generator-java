@@ -1,12 +1,9 @@
-package com.finbourne.TO_BE_REPLACED.extensions;
+package com.finbourne.TO_BE_REPLACED.integration.extensions;
 
 import com.finbourne.TO_BE_REPLACED.ApiClient;
 import com.finbourne.TO_BE_REPLACED.auth.Authentication;
 import com.finbourne.TO_BE_REPLACED.auth.OAuth;
-import com.finbourne.TO_BE_REPLACED.extensions.ApiClientBuilder;
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfiguration;
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationBuilder;
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationException;
+import com.finbourne.TO_BE_REPLACED.extensions.*;
 import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneTokenException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,7 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 
-public class ApiClientBuilderTests {
+public class ApiClientBuilderIT {
 
     private ApiClientBuilder apiClientBuilder;
 

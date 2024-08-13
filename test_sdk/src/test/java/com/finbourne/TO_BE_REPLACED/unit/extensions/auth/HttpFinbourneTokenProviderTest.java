@@ -1,6 +1,6 @@
-package com.finbourne.TO_BE_REPLACED.extensions.auth;
+package com.finbourne.TO_BE_REPLACED.unit.extensions.auth;
 
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfiguration;
+import com.finbourne.TO_BE_REPLACED.extensions.*;
 import com.finbourne.TO_BE_REPLACED.extensions.auth.HttpFinbourneTokenProvider;
 
 import okhttp3.OkHttpClient;

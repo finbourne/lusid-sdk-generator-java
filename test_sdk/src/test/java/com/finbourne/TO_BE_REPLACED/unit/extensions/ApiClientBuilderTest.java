@@ -1,7 +1,9 @@
-package com.finbourne.TO_BE_REPLACED.extensions;
+package com.finbourne.TO_BE_REPLACED.unit.extensions;
 
 import com.finbourne.TO_BE_REPLACED.ApiClient;
+import com.finbourne.TO_BE_REPLACED.extensions.*;
 import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneToken;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneTokenException;
 import com.finbourne.TO_BE_REPLACED.extensions.auth.FinbourneTokenException;
 
 import okhttp3.OkHttpClient;

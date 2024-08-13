@@ -1,4 +1,4 @@
-package com.finbourne.TO_BE_REPLACED.extensions;
+package com.finbourne.TO_BE_REPLACED.integration.extensions;
 
 /**
  * Filename containing LUSID API credentials

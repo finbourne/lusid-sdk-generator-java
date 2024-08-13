@@ -68,8 +68,7 @@ move-for-testing-local:
 
     # these files have been copied from the lusid sdk tests
     # rename to match the application being tested
-    mv {{justfile_directory()}}/generate/.output/sdk/src/test/integration/java/com/finbourne/TO_BE_REPLACED {{justfile_directory()}}/generate/.output/sdk/src/test/integration/java/com/finbourne/${PROJECT_NAME}
-    mv {{justfile_directory()}}/generate/.output/sdk/src/test/unit/java/com/finbourne/TO_BE_REPLACED {{justfile_directory()}}/generate/.output/sdk/src/test/unit/java/com/finbourne/${PROJECT_NAME}
+    mv {{justfile_directory()}}/generate/.output/sdk/src/test/java/com/finbourne/TO_BE_REPLACED {{justfile_directory()}}/generate/.output/sdk/src/test/java/com/finbourne/${PROJECT_NAME}
     upper_case_placeholder="$(echo "$PROJECT_NAME" | tr '[a-z]' '[A-Z]')"; \
         find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
     find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED/${PROJECT_NAME}/g" {} \;
@@ -83,8 +82,7 @@ move-for-testing GENERATED_DIR:
 
     # these files have been copied from the lusid sdk tests
     # rename to match the application being tested
-    mv .test_temp/sdk/src/test/integration/java/com/finbourne/TO_BE_REPLACED .test_temp/sdk/src/test/integration/java/com/finbourne/${PLACEHOLDER_VALUE_FOR_TESTS}
-    mv .test_temp/sdk/src/test/unit/java/com/finbourne/TO_BE_REPLACED .test_temp/sdk/src/test/unit/java/com/finbourne/${PLACEHOLDER_VALUE_FOR_TESTS}
+    mv .test_temp/sdk/src/test/java/com/finbourne/TO_BE_REPLACED .test_temp/sdk/src/test/java/com/finbourne/${PLACEHOLDER_VALUE_FOR_TESTS}
     upper_case_placeholder="$(echo "$PLACEHOLDER_VALUE_FOR_TESTS" | tr '[a-z]' '[A-Z]')"; \
         find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
     find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED/${PLACEHOLDER_VALUE_FOR_TESTS}/g" {} \;
@@ -96,23 +94,47 @@ move-for-testing GENERATED_DIR:
 test-local:
     @just generate-local
     @just move-for-testing-local
+
+    # to understand the following see https://medium.com/@vandernobrel/running-unit-and-integration-test-separately-in-maven-a3e82d25cb7d
+
+    sleep 10
+
+    echo "compiling ..."
+    mvn -f generate/.output/sdk compile
+    mvn -f generate/.output/sdk -Dskip.unit-tests=true test
+
+    # run unit tests - must not have any env vars set as this interferes with some of the unit tests
+    echo "running unit tests ..."
+    (unset `env | grep FBN_ | cut -d= -f1` && mvn -f generate/.output/sdk test)
+    
+    # run integration tests - these require valid secrets config
     echo "{\"api\":{\"personalAccessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"${APPLICATION_NAME}Url\":\"NOT_USED\"}}" > generate/.output/sdk/secrets.json
     cp generate/.output/sdk/secrets.json generate/.output/sdk/secrets-pat.json
-    mvn -f generate/.output/sdk verify
+    echo "running integration tests ..."
+    mvn -f generate/.output/sdk -Dskip.unit-tests=true verify
 
 # to be run after $(just generate-cicd {{GENERATED_DIR}})
 test-cicd GENERATED_DIR:
     @just move-for-testing {{GENERATED_DIR}}
+
+    # to understand the following see https://medium.com/@vandernobrel/running-unit-and-integration-test-separately-in-maven-a3e82d25cb7d
+
+    # run unit tests - must not have any env vars set as this interferes with some of the unit tests
+    echo "running unit tests ..."
+    (unset `env | grep FBN_ | cut -d= -f1` && mvn -f .test_temp/sdk test)
+    
+    # run integration tests - these require valid secrets config
     echo "{\"api\":{\"personalAccessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"${APPLICATION_NAME}Url\":\"NOT_USED\"}}" > .test_temp/sdk/secrets.json
     cp .test_temp/sdk/secrets.json .test_temp/sdk/secrets-pat.json
-    mvn -f .test_temp/sdk test
+    echo "running integration tests ..."
+    mvn -f .test_temp/sdk -Dskip.unit-tests=true verify
 
 test:
     @just test-local
     docker run -it --rm \
         -v {{justfile_directory()}}/generate/.output/sdk:/usr/src/sdk \
         -w /usr/src/sdk \
-        maven:3.8.7-openjdk-18-slim \
+        harbor.finbourne.com/tools/sdk-server-stub-base \
         /bin/bash -c "cd /usr/src/sdk && mvn clean && mvn test"
     
 generate TARGET_DIR:

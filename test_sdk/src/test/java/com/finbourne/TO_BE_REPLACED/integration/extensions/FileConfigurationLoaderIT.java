@@ -1,18 +1,18 @@
-package com.finbourne.TO_BE_REPLACED.extensions;
+package com.finbourne.TO_BE_REPLACED.integration.extensions;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import com.finbourne.TO_BE_REPLACED.extensions.FileConfigurationLoader;
+import com.finbourne.TO_BE_REPLACED.extensions.*;
 
-import static com.finbourne.TO_BE_REPLACED.extensions.TestContants.DUMMY_CREDENTIALS_FILE;
+import static com.finbourne.TO_BE_REPLACED.TestConstants.DUMMY_CREDENTIALS_FILE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class FileConfigurationLoaderTests {
+public class FileConfigurationLoaderIT {
 
     private FileConfigurationLoader fileConfigurationLoader;
 

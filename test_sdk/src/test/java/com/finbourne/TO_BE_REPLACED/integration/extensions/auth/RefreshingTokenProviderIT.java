@@ -1,7 +1,8 @@
-package com.finbourne.TO_BE_REPLACED.extensions.auth;
+package com.finbourne.TO_BE_REPLACED.integration.extensions.auth;
 
 import com.finbourne.TO_BE_REPLACED.extensions.*;
-import com.finbourne.TO_BE_REPLACED.extensions.CredentialsSource;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.*;
+import com.finbourne.TO_BE_REPLACED.integration.extensions.CredentialsSource;
 
 import okhttp3.OkHttpClient;
 import org.junit.Before;
@@ -16,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.mockito.Mockito.*;
 
-public class RefreshingTokenProviderTests {
+public class RefreshingTokenProviderIT {
 
     private RefreshingTokenProvider tokenProvider;
     private HttpFinbourneTokenProvider httpFinbourneTokenProvider;

@@ -1,10 +1,9 @@
-package com.finbourne.TO_BE_REPLACED.extensions.auth;
+package com.finbourne.TO_BE_REPLACED.integration.extensions.auth;
 
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfiguration;
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationBuilder;
-import com.finbourne.TO_BE_REPLACED.extensions.ApiConfigurationException;
-import com.finbourne.TO_BE_REPLACED.extensions.CredentialsSource;
-import com.finbourne.TO_BE_REPLACED.extensions.TestContants;
+import com.finbourne.TO_BE_REPLACED.extensions.*;
+import com.finbourne.TO_BE_REPLACED.TestConstants;
+import com.finbourne.TO_BE_REPLACED.extensions.auth.*;
+import com.finbourne.TO_BE_REPLACED.integration.extensions.CredentialsSource;
 
 import okhttp3.OkHttpClient;
 import org.junit.Before;
@@ -16,7 +15,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 
-public class HttpFinbourneTokenProviderTests {
+public class HttpFinbourneTokenProviderIT {
 
     private HttpFinbourneTokenProvider httpFinbourneTokenProvider;
 
@@ -67,7 +66,7 @@ public class HttpFinbourneTokenProviderTests {
     // Error cases
     @Test(expected = IllegalArgumentException.class)
     public void get_OnBadTokenUrl_ShouldThrowException() throws FinbourneTokenException, ApiConfigurationException {
-        ApiConfiguration apiConfiguration = new ApiConfigurationBuilder().build(TestContants.DUMMY_CREDENTIALS_FILE);
+        ApiConfiguration apiConfiguration = new ApiConfigurationBuilder().build(TestConstants.DUMMY_CREDENTIALS_FILE);
         OkHttpClient httpClient = new OkHttpClient.Builder().build();
         apiConfiguration.setTokenUrl("invalidTokenUrl");
 
