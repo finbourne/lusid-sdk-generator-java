@@ -64,7 +64,7 @@ public class ApiClientBuilderIT {
 
     private ApiConfiguration getBadTokenConfiguration() {
         return new ApiConfiguration(
-                "https://some-non-existing-test-instance.doesnotexist.com/oauth2/doesnotexist/v1/token",
+                "https://some-non-existing-test-instance.lusid.com/oauth2/doesnotexist/v1/token",
                 "test.testing@finbourne.com",
                 "note",
                 "invalid-client-id",
@@ -74,6 +74,8 @@ public class ApiClientBuilderIT {
                 null,
                 // proxy strs
                 "", 8888, "", "",
+                // timeouts
+                0, 0, 0, 0,
                 0);
     }
 }

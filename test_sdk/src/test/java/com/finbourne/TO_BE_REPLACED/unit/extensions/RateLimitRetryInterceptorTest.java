@@ -28,12 +28,12 @@ import okhttp3.mockwebserver.MockWebServer;
 public class RateLimitRetryInterceptorTest {
         @Test
         public void constructInterceptorWithLessThanOneAttemptsThrowsException() {
-                assertThrows(IllegalArgumentException.class, () -> new RateLimitRetryInterceptor(0));
+                assertThrows(IllegalArgumentException.class, () -> new RateLimitRetryInterceptor(-1));
         }
 
         @Test
         public void executeAttemptsNmkinus1TimesThenReturnsResult() throws IOException, ApiException {
-                final int MAX_ATTEMPTS = 2;
+                final int MAX_RETRIES = 1;
 
                 MockWebServer server = new MockWebServer();
                 MockResponse mockTooManyRequestsResponse = new MockResponse()
@@ -47,7 +47,7 @@ public class RateLimitRetryInterceptorTest {
                 server.start();
 
                 OkHttpClient client = new OkHttpClient.Builder()
-                                .addInterceptor(new RateLimitRetryInterceptor(MAX_ATTEMPTS)).build();
+                                .addInterceptor(new RateLimitRetryInterceptor(MAX_RETRIES)).build();
                 Request request = new Request.Builder()
                                 .url(server.url(""))
                                 .build();
@@ -60,7 +60,7 @@ public class RateLimitRetryInterceptorTest {
 
         @Test
         public void executeResponseHasNoRetryHeaderThrowsApiException() throws IOException, ApiException {
-                final int MAX_ATTEMPTS = 2;
+                final int MAX_RETRIES = 1;
 
                 MockWebServer server = new MockWebServer();
                 MockResponse mockTooManyRequestsResponse = new MockResponse()
@@ -70,7 +70,7 @@ public class RateLimitRetryInterceptorTest {
                 server.start();
 
                 OkHttpClient client = new OkHttpClient.Builder()
-                                .addInterceptor(new RateLimitRetryInterceptor(MAX_ATTEMPTS)).build();
+                                .addInterceptor(new RateLimitRetryInterceptor(MAX_RETRIES)).build();
                 Request request = new Request.Builder()
                                 .url(server.url(""))
                                 .build();
@@ -86,7 +86,7 @@ public class RateLimitRetryInterceptorTest {
 
         @Test
         public void executeResponseWithMalformedRetryHeaderThrowsApiException() throws IOException, ApiException {
-                final int MAX_ATTEMPTS = 2;
+                final int MAX_RETRIES = 1;
 
                 MockWebServer server = new MockWebServer();
                 MockResponse mockTooManyRequestsResponse = new MockResponse()
@@ -97,7 +97,7 @@ public class RateLimitRetryInterceptorTest {
                 server.start();
 
                 OkHttpClient client = new OkHttpClient.Builder()
-                                .addInterceptor(new RateLimitRetryInterceptor(MAX_ATTEMPTS)).build();
+                                .addInterceptor(new RateLimitRetryInterceptor(MAX_RETRIES)).build();
                 Request request = new Request.Builder()
                                 .url(server.url(""))
                                 .build();
@@ -114,7 +114,7 @@ public class RateLimitRetryInterceptorTest {
 
         @Test
         public void executeAttemptsNTimesThenThrowsAPIException() throws IOException, ApiException {
-                final int MAX_ATTEMPTS = 2;
+                final int MAX_RETRIES = 1;
 
                 MockWebServer server = new MockWebServer();
                 MockResponse mockTooManyRequestsResponse = new MockResponse()
@@ -129,7 +129,7 @@ public class RateLimitRetryInterceptorTest {
                 server.start();
 
                 OkHttpClient client = new OkHttpClient.Builder()
-                                .addInterceptor(new RateLimitRetryInterceptor(MAX_ATTEMPTS)).build();
+                                .addInterceptor(new RateLimitRetryInterceptor(MAX_RETRIES)).build();
                 Request request = new Request.Builder()
                                 .url(server.url(""))
                                 .build();
@@ -142,7 +142,7 @@ public class RateLimitRetryInterceptorTest {
         @Test
         @SuppressWarnings("unchecked")
         public void executeAsyncAttemptsNmkinus1TimesThenCallsOnSuccess() throws IOException, ApiException {
-                final int MAX_ATTEMPTS = 2;
+                final int MAX_RETRIES = 1;
                 MockWebServer server = new MockWebServer();
                 MockResponse mockTooManyRequestsResponse = new MockResponse()
                                 .setResponseCode(429)
@@ -155,7 +155,7 @@ public class RateLimitRetryInterceptorTest {
                 server.start();
 
                 OkHttpClient client = new OkHttpClient.Builder()
-                                .addInterceptor(new RateLimitRetryInterceptor(MAX_ATTEMPTS)).build();
+                                .addInterceptor(new RateLimitRetryInterceptor(MAX_RETRIES)).build();
                 Request request = new Request.Builder()
                                 .url(server.url(""))
                                 .build();
@@ -172,7 +172,7 @@ public class RateLimitRetryInterceptorTest {
         @Test
         @SuppressWarnings("unchecked")
         public void executeAsyncAttemptsNTimesThenCallsOnFailure() throws IOException, ApiException {
-                final int MAX_ATTEMPTS = 2;
+                final int MAX_RETRIES = 1;
                 MockWebServer server = new MockWebServer();
                 MockResponse mockTooManyRequestsResponse = new MockResponse()
                                 .setResponseCode(429)
@@ -186,7 +186,7 @@ public class RateLimitRetryInterceptorTest {
                 server.start();
 
                 OkHttpClient client = new OkHttpClient.Builder()
-                                .addInterceptor(new RateLimitRetryInterceptor(MAX_ATTEMPTS)).build();
+                                .addInterceptor(new RateLimitRetryInterceptor(MAX_RETRIES)).build();
                 Request request = new Request.Builder()
                                 .url(server.url(""))
                                 .build();

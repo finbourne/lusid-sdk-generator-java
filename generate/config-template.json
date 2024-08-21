@@ -76,6 +76,10 @@
             "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
             "destinationFilename": "RateLimitRetryInterceptor.java"
         },
+        "other/ConfigurationOptions.mustache": {
+            "folder": "src/main/java/com/finbourne/${PROJECT_NAME}/extensions",
+            "destinationFilename": "ConfigurationOptions.java"
+        },
         "pom.dev.mustache": {
             "folder": "",
             "destinationFilename": "pom.dev.xml"
