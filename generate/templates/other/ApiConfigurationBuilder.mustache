@@ -21,7 +21,11 @@ public class ApiConfigurationBuilder {
     }
 
     // The default timeout is 30 minutes
-    public static final int DEFAULT_TIMEOUT_MS = 1800000;
+    public static final int DEFAULT_TOTAL_TIMEOUT_MS = 1800000;
+    public static final int DEFAULT_CONNECT_TIMEOUT_MS = 0;
+    public static final int DEFAULT_READ_TIMEOUT_MS = 0;
+    public static final int DEFAULT_WRITE_TIMEOUT_MS = 0;
+    public static final int DEFAULT_RATE_LIMIT_RETRIES = 2;
 
     /**
      * Build an {@link ApiConfiguration}. Attempts to build a valid configuration
@@ -31,7 +35,19 @@ public class ApiConfigurationBuilder {
      * @throws ApiConfigurationException
      */
     public ApiConfiguration build() throws ApiConfigurationException {
-        ConfigurationWithErrors apiConfigWithErrorsEnvVars = getApiConfigurationFromEnvironmentVariables();
+        return build(new ConfigurationOptions());
+    }
+
+    /**
+     * Build an {@link ApiConfiguration}. Attempts to build a valid configuration
+     * from system environment variables. Additionally some configuration can be provided via the ConfigurationOptions.
+     * If set, this configuration overrides any from the environment variables
+     *
+     * @return a valid {@link ApiConfiguration}
+     * @throws ApiConfigurationException
+     */
+    public ApiConfiguration build(ConfigurationOptions configurationOptions) throws ApiConfigurationException {
+        ConfigurationWithErrors apiConfigWithErrorsEnvVars = getApiConfigurationFromEnvironmentVariables(configurationOptions);
 
         if (apiConfigWithErrorsEnvVars.errors.isEmpty()) {
             return apiConfigWithErrorsEnvVars.configuration;
@@ -53,13 +69,28 @@ public class ApiConfigurationBuilder {
     */
     public ApiConfiguration build(String apiSecretsFilename) throws ApiConfigurationException {
 
-        ConfigurationWithErrors apiConfigWithErrorsEnvVars = getApiConfigurationFromEnvironmentVariables();
+        return build(apiSecretsFilename, new ConfigurationOptions());
+    }
+
+    /**
+    * Build an {@link ApiConfiguration}. Attempts to build a valid configuration
+    * from system environment variables. Otherwise will attempt to load the configuration
+    * from the provided secrets file. Additionally some configuration can be provided via the ConfigurationOptions.
+    * If set, this configuration overrides any from the environment variables or secrets file.
+    *
+    * @param apiSecretsFilename - file containing configuration parameters
+    * @return a valid {@link ApiConfiguration}
+    * @throws ApiConfigurationException
+    */
+    public ApiConfiguration build(String apiSecretsFilename, ConfigurationOptions configurationOptions) throws ApiConfigurationException {
+
+        ConfigurationWithErrors apiConfigWithErrorsEnvVars = getApiConfigurationFromEnvironmentVariables(configurationOptions);
 
         if (apiConfigWithErrorsEnvVars.errors.isEmpty()) {
             return apiConfigWithErrorsEnvVars.configuration;
         }
 
-        ConfigurationWithErrors apiConfigWithErrorsFile = getApiConfigurationFromFile(apiSecretsFilename);
+        ConfigurationWithErrors apiConfigWithErrorsFile = getApiConfigurationFromFile(apiSecretsFilename, configurationOptions);
 
         if (apiConfigWithErrorsFile.errors.isEmpty()) {
             return apiConfigWithErrorsFile.configuration;
@@ -71,7 +102,7 @@ public class ApiConfigurationBuilder {
             String.join("; ", apiConfigWithErrorsEnvVars.errors) + ". The following issues were detected with the secrets file: " + String.join("; ", apiConfigWithErrorsFile.errors));
     }
 
-    public ConfigurationWithErrors getApiConfigurationFromEnvironmentVariables(){
+    public ConfigurationWithErrors getApiConfigurationFromEnvironmentVariables(ConfigurationOptions configurationOptions){
         ArrayList<String> errors = new ArrayList<String>();
         
         // check all auth config exists
@@ -98,18 +129,11 @@ public class ApiConfigurationBuilder {
 
         // optional config
         String applicationName = System.getenv("FBN_APP_NAME");
-        String timeoutMsString = System.getenv("FBN_TIMEOUT_MS");
-        int timeoutMs = DEFAULT_TIMEOUT_MS;
-        if (timeoutMsString != null) {
-            try {
-                timeoutMs = Integer.parseInt(timeoutMsString);
-                if (timeoutMs < 0) {
-                    errors.add("'FBN_TIMEOUT_MS' must be a positive integer between 0 and " + Integer.MAX_VALUE);
-                }
-            } catch (NumberFormatException e) {
-                errors.add("'FBN_TIMEOUT_MS' is not a valid integer");
-            }
-        }
+        int totalTimeoutMs = getPositiveIntFromEnvironmentVariable("FBN_TOTAL_TIMEOUT_MS", "TotalTimeoutMs", configurationOptions.getTotalTimeoutMs(), DEFAULT_TOTAL_TIMEOUT_MS, errors);
+        int connectTimeoutMs = getPositiveIntFromEnvironmentVariable("FBN_CONNECT_TIMEOUT_MS", "ConnectTimeoutMs", configurationOptions.getConnectTimeoutMs(), DEFAULT_CONNECT_TIMEOUT_MS, errors);
+        int readTimeoutMs = getPositiveIntFromEnvironmentVariable("FBN_READ_TIMEOUT_MS", "ReadTimeoutMs", configurationOptions.getReadTimeoutMs(), DEFAULT_READ_TIMEOUT_MS, errors);
+        int writeTimeoutMs = getPositiveIntFromEnvironmentVariable("FBN_WRITE_TIMEOUT_MS", "WriteTimeoutMs", configurationOptions.getWriteTimeoutMs(), DEFAULT_WRITE_TIMEOUT_MS, errors);
+        int rateLimitRetries = getPositiveIntFromEnvironmentVariable("FBN_RATE_LIMIT_RETRIES", "RateLimitRetries", configurationOptions.getRateLimitRetries(), DEFAULT_RATE_LIMIT_RETRIES, errors);
         
         // proxy configuration
         String proxyAddress = System.getenv("FBN_PROXY_ADDRESS");
@@ -128,7 +152,7 @@ public class ApiConfigurationBuilder {
         // return the configuration if no errors
         if (errors.isEmpty()) {
             ApiConfiguration configuration = new ApiConfiguration(tokenUrl, username, password, clientId, clientSecret, apiUrl, applicationName,
-                personalAccessToken, proxyAddress, proxyPort, proxyUsername, proxyPassword, timeoutMs);
+                personalAccessToken, proxyAddress, proxyPort, proxyUsername, proxyPassword, totalTimeoutMs, connectTimeoutMs, readTimeoutMs, writeTimeoutMs, rateLimitRetries);
             return new ConfigurationWithErrors(configuration, errors);
         }
 
@@ -136,12 +160,12 @@ public class ApiConfigurationBuilder {
         return new ConfigurationWithErrors(null, errors);
     }
 
-    public ConfigurationWithErrors getApiConfigurationFromFile(String apiSecretsFilename) throws ApiConfigurationException {
+    public ConfigurationWithErrors getApiConfigurationFromFile(String apiSecretsFilename, ConfigurationOptions configurationOptions) throws ApiConfigurationException {
         try {
             File configJson = getFileConfigurationLoader().loadConfiguration(apiSecretsFilename);
 
             ObjectMapper configMapper = new ObjectMapper();
-            Map config = configMapper.readValue(configJson, Map.class);
+            Map<String, Object> config = configMapper.readValue(configJson, Map.class);
 
             ArrayList<String> errors = new ArrayList<String>();
 
@@ -175,20 +199,14 @@ public class ApiConfigurationBuilder {
                 config, "api", errors);
             
             // optional config
-            Map apiConfig = (Map) config.get("api");
+            Map<String, Object> apiConfig = (Map<String, Object>) config.get("api");
             String applicationName = apiConfig.containsKey("applicationName") ? (String) apiConfig.get("applicationName") : null;
-            int timeoutMs = DEFAULT_TIMEOUT_MS;
 
-            if (apiConfig.containsKey("timeoutMs")) {
-                try {
-                    timeoutMs = (int) apiConfig.get("timeoutMs");
-                    if (timeoutMs < 0) {
-                        errors.add("'api.timeoutMs' must be a positive integer between 0 and " + Integer.MAX_VALUE);
-                    }
-                } catch (java.lang.ClassCastException e) {
-                    errors.add("'api.timeoutMs' is not a valid integer");
-                }
-            }
+            int totalTimeoutMs = getPositiveIntFromFile(apiConfig, "totalTimeoutMs", "TotalTimeoutMs", configurationOptions.getTotalTimeoutMs(), DEFAULT_TOTAL_TIMEOUT_MS, errors);
+            int connectTimeoutMs = getPositiveIntFromFile(apiConfig, "connectTimeoutMs", "ConnectTimeoutMs", configurationOptions.getConnectTimeoutMs(), DEFAULT_CONNECT_TIMEOUT_MS, errors);
+            int readTimeoutMs = getPositiveIntFromFile(apiConfig, "readTimeoutMs", "ReadTimeoutMs", configurationOptions.getReadTimeoutMs(), DEFAULT_READ_TIMEOUT_MS, errors);
+            int writeTimeoutMs = getPositiveIntFromFile(apiConfig, "writeTimeoutMs", "WriteTimeoutMs", configurationOptions.getWriteTimeoutMs(), DEFAULT_WRITE_TIMEOUT_MS, errors);
+            int rateLimitRetries = getPositiveIntFromFile(apiConfig, "rateLimitRetries", "RateLimitRetries", configurationOptions.getRateLimitRetries(), DEFAULT_RATE_LIMIT_RETRIES, errors);
 
             // proxy config
             String proxyAddress = null;
@@ -197,7 +215,7 @@ public class ApiConfigurationBuilder {
             String proxyPassword = null;
 
             if (config.containsKey("proxy")) {
-                Map proxyConfig = (Map) config.get("proxy");
+                Map<String, Object> proxyConfig = (Map<String, Object>) config.get("proxy");
 
                 proxyAddress = (String) proxyConfig.get("proxyAddress");
                 proxyPort = (Integer) proxyConfig.get("proxyPort");
@@ -208,7 +226,7 @@ public class ApiConfigurationBuilder {
             // return the configuration if no errors
             if (errors.isEmpty()) {
                 ApiConfiguration configuration = new ApiConfiguration(tokenUrl, username, password, clientId, clientSecret, apiUrl, applicationName,
-                    personalAccessToken, proxyAddress, proxyPort, proxyUsername, proxyPassword, timeoutMs);
+                    personalAccessToken, proxyAddress, proxyPort, proxyUsername, proxyPassword, totalTimeoutMs, connectTimeoutMs, readTimeoutMs, writeTimeoutMs, rateLimitRetries);
                 return new ConfigurationWithErrors(configuration, errors);
             }
 
@@ -233,9 +251,9 @@ public class ApiConfigurationBuilder {
         return value;
     }
 
-    String getRequiredValueFromFile(String[] names, Map config, String configKey, ArrayList<String> errors) {
+    String getRequiredValueFromFile(String[] names, Map<String, Object> config, String configKey, ArrayList<String> errors) {
         String value = null;
-        Map innerConfig = (Map) config.get(configKey);
+        Map<String, Object> innerConfig = (Map<String, Object>) config.get(configKey);
         for (String name: names) {
             if (innerConfig.containsKey(name)) {
                 value = (String) innerConfig.get(name);
@@ -246,6 +264,66 @@ public class ApiConfigurationBuilder {
             errors.add("'" + configKey + "." + names[0] + "' was not set");
         }
         return value;
+    }
+
+    int getPositiveIntFromEnvironmentVariable(
+        String envVarName,
+        String configurationOptionName,
+        Integer configurationOptionValue,
+        int defaultValue,
+        ArrayList<String> errors
+    ) {
+        int returnInt;
+        if (configurationOptionValue == null) {
+            String intString = System.getenv(envVarName);
+            returnInt = defaultValue;
+            if (intString != null) {
+                try {
+                    returnInt = Integer.parseInt(intString);
+                    if (returnInt < 0) {
+                        errors.add("'" + envVarName + "' must be a positive integer between 0 and " + Integer.MAX_VALUE);
+                    }
+                } catch (NumberFormatException e) {
+                    errors.add("'" + envVarName + "' is not a valid integer");
+                }
+            }
+        } else {
+            returnInt = configurationOptionValue;
+            if (returnInt < 0) {
+                errors.add("'ConfigurationOptions." + configurationOptionName + "' must be a positive integer between 0 and " + Integer.MAX_VALUE);
+            }
+        }
+        return returnInt;
+    }
+
+    int getPositiveIntFromFile(
+        Map<String, Object> apiConfig,
+        String configName,
+        String configurationOptionName,
+        Integer configurationOptionValue,
+        int defaultValue,
+        ArrayList<String> errors
+    ) {
+        int returnInt = defaultValue;
+        if (configurationOptionValue == null) {
+            if (apiConfig.containsKey(configName)) {
+                Object intObject = apiConfig.get(configName);
+                if (intObject instanceof Integer) {
+                    returnInt = (int) apiConfig.get(configName);
+                    if (returnInt < 0) {
+                        errors.add("'api." + configName + "' must be a positive integer between 0 and " + Integer.MAX_VALUE);
+                    }
+                } else {
+                    errors.add("'api." + configName + "' is not a valid integer");
+                }
+            }
+        } else {
+            returnInt = configurationOptionValue;
+            if (returnInt < 0) {
+                errors.add("'ConfigurationOptions." + configurationOptionName + "' must be a positive integer between 0 and " + Integer.MAX_VALUE);
+            }
+        }
+        return returnInt;
     }
 
     // getter used for mocking in tests

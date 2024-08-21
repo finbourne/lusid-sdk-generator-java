@@ -25,6 +25,8 @@ export FBN_PASSWORD := `echo ${FBN_PASSWORD:-password}`
 export FBN_CLIENT_ID := `echo ${FBN_CLIENT_ID:-client-id}`
 export FBN_CLIENT_SECRET := `echo ${FBN_CLIENT_SECRET:-client-secret}`
 export EXCLUDE_TESTS := `echo ${EXCLUDE_TESTS:-true}`
+export TEST_API := `echo ${TEST_API:-ApplicationMetadataApi}`
+export TEST_METHOD := `echo ${TEST_METHOD:-listAccessControlledResources()}`
 
 swagger_path := "./swagger.json"
 
@@ -72,6 +74,8 @@ move-for-testing-local:
     upper_case_placeholder="$(echo "$PROJECT_NAME" | tr '[a-z]' '[A-Z]')"; \
         find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
     find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED/${PROJECT_NAME}/g" {} \;
+    find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TEST_API/${TEST_API}/g" {} \;
+    find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TEST_METHOD/${TEST_METHOD}/g" {} \;
 
     mv {{justfile_directory()}}/generate/.output/sdk/pom.dev.xml {{justfile_directory()}}/generate/.output/sdk/pom.xml
 
@@ -86,6 +90,8 @@ move-for-testing GENERATED_DIR:
     upper_case_placeholder="$(echo "$PLACEHOLDER_VALUE_FOR_TESTS" | tr '[a-z]' '[A-Z]')"; \
         find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
     find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED/${PLACEHOLDER_VALUE_FOR_TESTS}/g" {} \;
+    find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TEST_API/${TEST_API}/g" {} \;
+    find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TEST_METHOD/${TEST_METHOD}/g" {} \;
 
     # use the pom.dev.xml file
     mv .test_temp/sdk/pom.dev.xml .test_temp/sdk/pom.xml
@@ -108,7 +114,7 @@ test-local:
     (unset `env | grep FBN_ | cut -d= -f1` && mvn -f generate/.output/sdk test)
     
     # run integration tests - these require valid secrets config
-    echo "{\"api\":{\"personalAccessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"${APPLICATION_NAME}Url\":\"NOT_USED\"}}" > generate/.output/sdk/secrets.json
+    echo "{\"api\":{\"accessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"${APPLICATION_NAME}Url\":\"NOT_USED\"}}" > generate/.output/sdk/secrets.json
     cp generate/.output/sdk/secrets.json generate/.output/sdk/secrets-pat.json
     echo "running integration tests ..."
     mvn -f generate/.output/sdk -Dskip.unit-tests=true verify
@@ -124,7 +130,7 @@ test-cicd GENERATED_DIR:
     (unset `env | grep FBN_ | cut -d= -f1` && mvn -f .test_temp/sdk test)
     
     # run integration tests - these require valid secrets config
-    echo "{\"api\":{\"personalAccessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"${APPLICATION_NAME}Url\":\"NOT_USED\"}}" > .test_temp/sdk/secrets.json
+    echo "{\"api\":{\"accessToken\":\"$FBN_ACCESS_TOKEN\",\"tokenUrl\":\"$FBN_TOKEN_URL\",\"username\":\"$FBN_USERNAME\",\"password\":\"$FBN_PASSWORD\",\"clientId\":\"$FBN_CLIENT_ID\",\"clientSecret\":\"$FBN_CLIENT_SECRET\",\"${APPLICATION_NAME}Url\":\"NOT_USED\"}}" > .test_temp/sdk/secrets.json
     cp .test_temp/sdk/secrets.json .test_temp/sdk/secrets-pat.json
     echo "running integration tests ..."
     mvn -f .test_temp/sdk -Dskip.unit-tests=true verify
