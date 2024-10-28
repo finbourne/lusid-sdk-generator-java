@@ -47,7 +47,7 @@ generate-templates:
 generate-local:
     envsubst < generate/config-template.json > generate/.config.json
     cp generate/templates/description.{{APPLICATION_NAME}}.mustache generate/templates/description.mustache
-    rm -r generate/.output || true
+    rm -rf generate/.output || true
     docker run --rm \
         -e JAVA_OPTS="${JAVA_OPTS}" \
         -e APPLICATION_NAME=${APPLICATION_NAME} \
@@ -72,10 +72,10 @@ move-for-testing-local:
     # rename to match the application being tested
     mv {{justfile_directory()}}/generate/.output/sdk/src/test/java/com/finbourne/TO_BE_REPLACED {{justfile_directory()}}/generate/.output/sdk/src/test/java/com/finbourne/${PROJECT_NAME}
     upper_case_placeholder="$(echo "$PROJECT_NAME" | tr '[a-z]' '[A-Z]')"; \
-        find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
-    find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED/${PROJECT_NAME}/g" {} \;
-    find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TEST_API/${TEST_API}/g" {} \;
-    find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec sed -i -e "s/TEST_METHOD/${TEST_METHOD}/g" {} \;
+        find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec gsed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
+    find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec gsed -i -e "s/TO_BE_REPLACED/${PROJECT_NAME}/g" {} \;
+    find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec gsed -i -e "s/TEST_API/${TEST_API}/g" {} \;
+    find {{justfile_directory()}}/generate/.output/sdk/src/test -type f -exec gsed -i -e "s/TEST_METHOD/${TEST_METHOD}/g" {} \;
 
     mv {{justfile_directory()}}/generate/.output/sdk/pom.dev.xml {{justfile_directory()}}/generate/.output/sdk/pom.xml
 
@@ -88,10 +88,10 @@ move-for-testing GENERATED_DIR:
     # rename to match the application being tested
     mv .test_temp/sdk/src/test/java/com/finbourne/TO_BE_REPLACED .test_temp/sdk/src/test/java/com/finbourne/${PLACEHOLDER_VALUE_FOR_TESTS}
     upper_case_placeholder="$(echo "$PLACEHOLDER_VALUE_FOR_TESTS" | tr '[a-z]' '[A-Z]')"; \
-        find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
-    find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TO_BE_REPLACED/${PLACEHOLDER_VALUE_FOR_TESTS}/g" {} \;
-    find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TEST_API/${TEST_API}/g" {} \;
-    find .test_temp/sdk/src/test -type f -exec sed -i -e "s/TEST_METHOD/${TEST_METHOD}/g" {} \;
+        find .test_temp/sdk/src/test -type f -exec gsed -i -e "s/TO_BE_REPLACED_UPPER_SNAKECASE/${upper_case_placeholder}/g" {} \;
+    find .test_temp/sdk/src/test -type f -exec gsed -i -e "s/TO_BE_REPLACED/${PLACEHOLDER_VALUE_FOR_TESTS}/g" {} \;
+    find .test_temp/sdk/src/test -type f -exec gsed -i -e "s/TEST_API/${TEST_API}/g" {} \;
+    find .test_temp/sdk/src/test -type f -exec gsed -i -e "s/TEST_METHOD/${TEST_METHOD}/g" {} \;
 
     # use the pom.dev.xml file
     mv .test_temp/sdk/pom.dev.xml .test_temp/sdk/pom.xml

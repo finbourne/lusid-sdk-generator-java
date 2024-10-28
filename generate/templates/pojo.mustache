@@ -319,11 +319,7 @@ public class {{classname}} {{#parent}}extends {{{.}}} {{/parent}}{{#vendorExtens
         super.equals(o){{/parent}};{{/hasVars}}{{^hasVars}}
     return {{#parent}}super.equals(o){{/parent}}{{^parent}}true{{/parent}};{{/hasVars}}
   {{/useReflectionEqualsHashCode}}
-  }{{#vendorExtensions.x-jackson-optional-nullable-helpers}}
-
-  private static <T> boolean equalsNullable(JsonNullable<T> a, JsonNullable<T> b) {
-    return a == b || (a != null && b != null && a.isPresent() && b.isPresent() && Objects.deepEquals(a.get(), b.get()));
-  }{{/vendorExtensions.x-jackson-optional-nullable-helpers}}
+  }
 
   @Override
   public int hashCode() {
@@ -333,14 +329,7 @@ public class {{classname}} {{#parent}}extends {{{.}}} {{/parent}}{{#vendorExtens
   {{^useReflectionEqualsHashCode}}
     return Objects.hash({{#vars}}{{#vendorExtensions.x-is-jackson-optional-nullable}}hashCodeNullable({{name}}){{/vendorExtensions.x-is-jackson-optional-nullable}}{{^vendorExtensions.x-is-jackson-optional-nullable}}{{^isByteArray}}{{name}}{{/isByteArray}}{{#isByteArray}}Arrays.hashCode({{name}}){{/isByteArray}}{{/vendorExtensions.x-is-jackson-optional-nullable}}{{^-last}}, {{/-last}}{{/vars}}{{#parent}}{{#hasVars}}{{#vars.0}}, {{/vars.0}}{{/hasVars}}super.hashCode(){{/parent}}{{#isAdditionalPropertiesTrue}}{{#hasVars}}, {{/hasVars}}{{^hasVars}}{{#parent}}, {{/parent}}{{/hasVars}}additionalProperties{{/isAdditionalPropertiesTrue}});
   {{/useReflectionEqualsHashCode}}
-  }{{#vendorExtensions.x-jackson-optional-nullable-helpers}}
-
-  private static <T> int hashCodeNullable(JsonNullable<T> a) {
-    if (a == null) {
-      return 1;
-    }
-    return a.isPresent() ? Arrays.deepHashCode(new Object[]{a.get()}) : 31;
-  }{{/vendorExtensions.x-jackson-optional-nullable-helpers}}
+  }
 
   @Override
   public String toString() {
