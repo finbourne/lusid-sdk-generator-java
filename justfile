@@ -47,7 +47,7 @@ generate-templates:
 generate-local:
     envsubst < generate/config-template.json > generate/.config.json
     if [ !-f "./generate/templates/description.{{APPLICATION_NAME}}.mustache" ]; then \
-        echo "[INTERNAL] FINBOURNE Technology {{APPLICATION_NAME}} SDK" > generate/templates/description.{{APPLICATION_SHORT_NAME}}.mustache; \
+        echo "[INTERNAL] FINBOURNE Technology {{APPLICATION_NAME}} SDK" > generate/templates/description.{{APPLICATION_NAME}}.mustache; \
         echo "[INFO] No description template found for {{APPLICATION_NAME}} - if this is an external facing SDK - add ./generate/templates/description.{{APPLICATION_NAME}}.mustache to this project ASAP";\
     fi
     cp generate/templates/description.{{APPLICATION_NAME}}.mustache generate/templates/description.mustache
@@ -163,7 +163,7 @@ generate-cicd TARGET_DIR:
     envsubst < generate/config-template.json > generate/.config.json
     cp ./generate/.openapi-generator-ignore ./generate/.output/.openapi-generator-ignore
     if [ !-f "./generate/templates/description.{{APPLICATION_NAME}}.mustache" ]; then \
-        echo "[INTERNAL] FINBOURNE Technology {{APPLICATION_NAME}} SDK" > generate/templates/description.{{APPLICATION_SHORT_NAME}}.mustache; \
+        echo "[INTERNAL] FINBOURNE Technology {{APPLICATION_NAME}} SDK" > generate/templates/description.{{APPLICATION_NAME}}.mustache; \
         echo "[INFO] No description template found for {{APPLICATION_NAME}} - if this is an external facing SDK - add ./generate/templates/description.{{APPLICATION_NAME}}.mustache to this project ASAP";\
     fi
     cp ./generate/templates/description.{{APPLICATION_NAME}}.mustache ./generate/templates/description.mustache
