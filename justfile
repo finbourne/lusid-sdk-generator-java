@@ -62,6 +62,8 @@ generate-local:
     rm -f generate/.output/.openapi-generator-ignore || true
     rm generate/templates/description.mustache
 
+    if [ "{{APPLICATION_NAME}}" = "luminesce" ]; then just make-import-fix; fi
+
     # split the README into two, and move one up a level
     bash generate/split-readme.sh
 
@@ -171,6 +173,7 @@ generate-cicd TARGET_DIR:
     # this prevents deleted content from hanging around indefinitely.
     rm -rf {{TARGET_DIR}}/sdk/${APPLICATION_NAME}
     rm -rf {{TARGET_DIR}}/sdk/docs
+    if [ "{{APPLICATION_NAME}}" = "luminesce" ]; then just make-import-fix; fi
 
     if [ "$EXCLUDE_TESTS" != "false" ]; then rm generate/.output/sdk/pom.dev.xml; fi
     cp -R generate/.output/. {{TARGET_DIR}}
@@ -222,3 +225,9 @@ publish-cicd SRC_DIR:
     # mvn -e -f {{SRC_DIR}}/pom.xml test-compile compile
     mvn -f {{SRC_DIR}}/pom.xml versions:set -DnewVersion=${PACKAGE_VERSION}
     mvn -f {{SRC_DIR}}/pom.xml -s {{SRC_DIR}}/settings.xml clean deploy -Dmaven.test.skip=true ${extra_mvn_commandline_options}
+
+make-import-fix:
+    bash {{justfile_directory()}}/generate/fix-import-for-luminesce.sh \
+    {{justfile_directory()}}/generate/.output/sdk/src/main/java/com/finbourne/luminesce/model/FilterModel.java \
+    "private Type type;" \
+    "private com.finbourne.luminesce.model.Type type;"
