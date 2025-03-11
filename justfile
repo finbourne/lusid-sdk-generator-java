@@ -9,9 +9,9 @@
 #    META_REQUEST_ID_HEADER_KEY
 #    NUGET_PACKAGE_LOCATION
 
-export APPLICATION_NAME := `echo ${APPLICATION_NAME:-lusid}`
-export PACKAGE_NAME := `echo ${PACKAGE_NAME:-lusid-sdk}`
-export PROJECT_NAME := `echo ${PROJECT_NAME:-lusid}`
+export APPLICATION_NAME := `echo ${APPLICATION_NAME:-luminesce}`
+export PACKAGE_NAME := `echo ${PACKAGE_NAME:-luminesce-sdk}`
+export PROJECT_NAME := `echo ${PROJECT_NAME:-luminesce}`
 export PACKAGE_VERSION := `echo ${PACKAGE_VERSION:-2.9999.0}`
 export META_REQUEST_ID_HEADER_KEY := `echo ${META_REQUEST_ID_HEADER_KEY:-lusid-meta-requestid}`
 export JAVA_PACKAGE_LOCATION := `echo ${JAVA_PACKAGE_LOCATION:-~/.java/maven/local-packages}`
@@ -173,6 +173,7 @@ generate-cicd TARGET_DIR:
     # this prevents deleted content from hanging around indefinitely.
     rm -rf {{TARGET_DIR}}/sdk/${APPLICATION_NAME}
     rm -rf {{TARGET_DIR}}/sdk/docs
+
     if [ "{{APPLICATION_NAME}}" = "luminesce" ]; then just make-import-fix; fi
 
     if [ "$EXCLUDE_TESTS" != "false" ]; then rm generate/.output/sdk/pom.dev.xml; fi
