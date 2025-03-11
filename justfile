@@ -227,7 +227,7 @@ publish-cicd SRC_DIR:
     mvn -f {{SRC_DIR}}/pom.xml -s {{SRC_DIR}}/settings.xml clean deploy -Dmaven.test.skip=true ${extra_mvn_commandline_options}
 
 make-import-fix:
-    bash {{justfile_directory()}}/generate/fix-import-for-luminesce.sh \
-    {{justfile_directory()}}/generate/.output/sdk/src/main/java/com/finbourne/luminesce/model/FilterModel.java \
-    "private Type type;" \
-    "private com.finbourne.luminesce.model.Type type;"
+    bash {{justfile_directory()}}/generate/fix-files-for-imports.sh \
+    {{justfile_directory()}} \
+    ${PACKAGE_NAME} \
+    ${APPLICATION_NAME}
