@@ -19,6 +19,11 @@
             "file": "FilterModel",
             "find": "private Type type;",
             "replace": "private com.finbourne.luminesce.model.Type type;"
+        },
+        {
+            "file": "FilterModel",
+            "find": "import java.lang.reflect.Type;",
+            "replace": ""
         }
 
     ]
