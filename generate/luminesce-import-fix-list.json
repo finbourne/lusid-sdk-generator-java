@@ -1,0 +1,30 @@
+{
+    "items": [
+        {
+            "file": "FilterModel",
+            "find": "public FilterModel type(Type type)",
+            "replace": "public FilterModel type(com.finbourne.luminesce.model.Type type)"
+        },
+        {
+            "file": "FilterModel",
+            "find": "public Type getType()",
+            "replace": "public com.finbourne.luminesce.model.Type getType()"
+        },
+        {
+            "file": "FilterModel",
+            "find": "public void setType(Type type)",
+            "replace": "public void setType(com.finbourne.luminesce.model.Type type)"
+        },
+        {
+            "file": "FilterModel",
+            "find": "private Type type;",
+            "replace": "private com.finbourne.luminesce.model.Type type;"
+        },
+        {
+            "file": "FilterModel",
+            "find": "import java.lang.reflect.Type;",
+            "replace": ""
+        }
+
+    ]
+}

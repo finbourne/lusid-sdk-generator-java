@@ -9,9 +9,9 @@
 #    META_REQUEST_ID_HEADER_KEY
 #    NUGET_PACKAGE_LOCATION
 
-export APPLICATION_NAME := `echo ${APPLICATION_NAME:-lusid}`
-export PACKAGE_NAME := `echo ${PACKAGE_NAME:-lusid-sdk}`
-export PROJECT_NAME := `echo ${PROJECT_NAME:-lusid}`
+export APPLICATION_NAME := `echo ${APPLICATION_NAME:-luminesce}`
+export PACKAGE_NAME := `echo ${PACKAGE_NAME:-luminesce-sdk}`
+export PROJECT_NAME := `echo ${PROJECT_NAME:-luminesce}`
 export PACKAGE_VERSION := `echo ${PACKAGE_VERSION:-2.9999.0}`
 export META_REQUEST_ID_HEADER_KEY := `echo ${META_REQUEST_ID_HEADER_KEY:-lusid-meta-requestid}`
 export JAVA_PACKAGE_LOCATION := `echo ${JAVA_PACKAGE_LOCATION:-~/.java/maven/local-packages}`
@@ -61,6 +61,8 @@ generate-local:
         lusid-sdk-gen-java:latest -- ./generate/generate.sh ./generate ./generate/.output /tmp/swagger.json .config.json
     rm -f generate/.output/.openapi-generator-ignore || true
     rm generate/templates/description.mustache
+
+    if [ "{{APPLICATION_NAME}}" = "luminesce" ]; then just make-import-fix; fi
 
     # split the README into two, and move one up a level
     bash generate/split-readme.sh
@@ -172,6 +174,8 @@ generate-cicd TARGET_DIR:
     rm -rf {{TARGET_DIR}}/sdk/${APPLICATION_NAME}
     rm -rf {{TARGET_DIR}}/sdk/docs
 
+    if [ "{{APPLICATION_NAME}}" = "luminesce" ]; then just make-import-fix; fi
+
     if [ "$EXCLUDE_TESTS" != "false" ]; then rm generate/.output/sdk/pom.dev.xml; fi
     cp -R generate/.output/. {{TARGET_DIR}}
     echo "copied output to {{TARGET_DIR}}"
@@ -222,3 +226,9 @@ publish-cicd SRC_DIR:
     # mvn -e -f {{SRC_DIR}}/pom.xml test-compile compile
     mvn -f {{SRC_DIR}}/pom.xml versions:set -DnewVersion=${PACKAGE_VERSION}
     mvn -f {{SRC_DIR}}/pom.xml -s {{SRC_DIR}}/settings.xml clean deploy -Dmaven.test.skip=true ${extra_mvn_commandline_options}
+
+make-import-fix:
+    bash {{justfile_directory()}}/generate/fix-files-for-imports.sh \
+    {{justfile_directory()}} \
+    ${PACKAGE_NAME} \
+    ${APPLICATION_NAME}
