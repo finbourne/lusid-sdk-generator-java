@@ -9,9 +9,9 @@
 #    META_REQUEST_ID_HEADER_KEY
 #    NUGET_PACKAGE_LOCATION
 
-export APPLICATION_NAME := `echo ${APPLICATION_NAME:-luminesce}`
-export PACKAGE_NAME := `echo ${PACKAGE_NAME:-luminesce-sdk}`
-export PROJECT_NAME := `echo ${PROJECT_NAME:-luminesce}`
+export APPLICATION_NAME := `echo ${APPLICATION_NAME:-lusid}`
+export PACKAGE_NAME := `echo ${PACKAGE_NAME:-lusid-sdk}`
+export PROJECT_NAME := `echo ${PROJECT_NAME:-lusid}`
 export PACKAGE_VERSION := `echo ${PACKAGE_VERSION:-2.9999.0}`
 export META_REQUEST_ID_HEADER_KEY := `echo ${META_REQUEST_ID_HEADER_KEY:-lusid-meta-requestid}`
 export JAVA_PACKAGE_LOCATION := `echo ${JAVA_PACKAGE_LOCATION:-~/.java/maven/local-packages}`
