@@ -113,7 +113,7 @@ public class {{classname}} {{#parent}}extends {{{.}}} {{/parent}}{{#vendorExtens
   {{/isContainer}}
   {{/vendorExtensions.x-is-jackson-optional-nullable}}
   {{^vendorExtensions.x-is-jackson-optional-nullable}}
-  {{#isDiscriminator}}protected{{/isDiscriminator}}{{^isDiscriminator}}private{{/isDiscriminator}} {{{datatypeWithEnum}}} {{name}}{{#defaultValue}} = {{{.}}}{{/defaultValue}};
+  {{#isDiscriminator}}protected{{/isDiscriminator}}{{^isDiscriminator}}private{{/isDiscriminator}} {{{datatypeWithEnum}}} {{name}}{{#defaultValue}} = {{#isDouble}}{{{datatypeWithEnum}}}.valueOf({{{.}}}){{/isDouble}}{{^isDouble}}{{{.}}}{{/isDouble}}{{/defaultValue}};
   {{/vendorExtensions.x-is-jackson-optional-nullable}}
 
   {{/vars}}
